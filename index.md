@@ -389,7 +389,7 @@ delete it:
 
 `git rm` removes the file and also stages the change.  You can also use `git mv`
 to move a file and stage the change.  By telling Git that you've moved the file,
-we guarantee that Git won't thing that the new filename is a totally new file -
+we guarantee that Git won't think that the new filename is a totally new file -
 so Git won't end up with two copies of the same data in its history.  Git is
 fairly smart though, and can often detect moves/renames even if the file has also
 been edited a little.  This is useful as I always forget to use `git mv`...
@@ -558,7 +558,7 @@ HEAD directly points to, it ultimately identifies a commit.
 When we create a new commit, that commit becomes HEAD.  If we create another
 commit after this, the new commit becomes HEAD and so forth.
 
-### Directed acylcic graphs
+### Directed acyclic graphs
 
 There are two types of DAG:
 
@@ -610,7 +610,8 @@ Your git history is a directed acyclic graph.
 
 A cool thing about DAGs is that they can be "straightened" out such that all
 vertexes are located on a straight line and all edges point in the same
-direction along the line.
+direction along the line.  This means that any given commit has a linear chain
+of commits preceeding it which fully describe its history.
 
 ### Branching
 
@@ -932,7 +933,7 @@ And reset the working tree:
 
 Instead of merging `eesti-keel` on top of our other merges, we really want to
 get rid of them and just use `eesti-keel` instead.  We could do
-`git reset HEAD~2` to undo the two merge commits, then merge `eesti-kiil` after.
+`git reset HEAD~2` to undo the two merge commits, then merge `eesti-keel` after.
 
 	$ git reset HEAD~2
 
@@ -976,11 +977,11 @@ First, let's reset `master` back to the mess we had after three merges, by
 
 What's the `--hard`?  I'm not going to tell you.  It can be extremely
 destructive if not used carefully, so check the manual before you ever consider
-using it in your own code.
+using it yourself.
 
 The most common use for rebase is to pull a chain of commits off its parent, and
 moved it onto a new parent.  See the manpage for more info.  We are going to
-move commit 
+move the `eesti-keel` commit onto the initial commit.
 
 	$ git rebase --onto 013d 1cdf master
 
@@ -999,7 +1000,19 @@ Verify:
 	 |/
 	 * 8a7bf67ff2f679af3cacfd361fa4116150a74290 Initial commit
 
-Great!
+Great!  But now we have two old branches that aren't wanted any more...
+
+### Deleting branches
+
+TODO: deleting local branches
+
+# Beware of...
+
+## Reset --hard
+
+## Rebase
+
+## Anything involving "--force" or "-f"
 
 # Useful aliases
 
@@ -1035,4 +1048,6 @@ Display entire history of all branches as a graph, with shortened commit IDs
 
 # TODO
 
-Bare repositories, remotes, fetch/pull, tags+GPG, github, npm, sobmodules...
+Add some graph diagrams
+
+Bare repositories, remotes, fetch/pull, tags+GPG, github, npm, cherry-pick, sobmodules...
