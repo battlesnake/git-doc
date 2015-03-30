@@ -48,14 +48,15 @@ Manpage:
 	...
 
 
-The key word there is _distributed_.  Where most revision control systems are
-designed to be used in conjunction with some central server, and are pretty much
-useless without it, Git is designed to be fully-capable when run locally on one
-machine - the remote communication abilities of git could almost be considered
-an "afterthought", given that a local Git repository offers more power and
-flexibility than most traditional "centralised" revision control systems.  This
-isn't a criticism of Git's remote capabilities, merely a testament to how much
-can be done with it **without** hooking it up to some central server.
+The key word there is _distributed_.  It is a very simple content-tracker. Where
+most revision control systems aredesigned to be used in conjunction with some
+central server, and are pretty much useless without it, Git is designed to be
+fully-capable when run locally on one machine - the remote communication
+abilities of git could almost be considered an "afterthought", given that a
+local Git repository offers more power and flexibility than most traditional
+"centralised" revision control systems.  This isn't a criticism of Git's remote
+capabilities, merely a testament to how much can be done with it **without**
+hooking it up to some central server.
 
 To those familiar with other systems, Git can seem very strange and unintuitive.
 You'll find constant references to graph theory and checksums when reading Git's
@@ -161,7 +162,7 @@ repository, you "upload" your commits.
 ### Working tree
 
 This is where your files would normally be if you weren't using Git to track
-them.  Editing your files is no different when you have then in a Git
+them.  Editing your files is no different when you have them in a Git
 repository.
 
 ### Staging area
@@ -999,3 +1000,39 @@ Verify:
 	 * 8a7bf67ff2f679af3cacfd361fa4116150a74290 Initial commit
 
 Great!
+
+# Useful aliases
+
+# Status
+
+Short way to display git status
+
+	alias gs='git status'
+
+	$ gs
+
+## Graph
+
+Display entire history of all branches as a graph, with shortened commit IDs
+
+	alias gg='git log --graph --all --oneline --decorate --full-history --color --pretty=format:"%x1b[31m%h%x09%x1b[32m%d%x1b[0m%x20%s"'
+
+	$ gg
+
+## Diff
+
+	alias gd='git diff'
+
+	$ gd
+
+	$ gd <file>
+
+	$ gd <commit> -- <file>
+
+	$ gd <commit-A> <commit B>
+
+	$ gd <commit-A> <commit B> -- <file>
+
+# TODO
+
+Bare repositories, remotes, fetch/pull, tags+GPG, github, npm, sobmodules...
