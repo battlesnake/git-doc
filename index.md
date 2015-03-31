@@ -109,7 +109,7 @@ Git had several key design criteria:
  * Take CVS as an example of what **not** to do.  If in doubt over how to do
    something, do the opposite of what CVS does.
 
-# What's the fuss with "distributed"?
+## What's the fuss with "distributed"?
 
 When 1000+ kernel developers are working on the same codebase, that could create
 a lot of traffic for a centralised control system.  Additionally, developers
@@ -573,6 +573,8 @@ HEAD directly points to, it ultimately identifies a commit.
 
 When we create a new commit, that commit becomes HEAD.  If we create another
 commit after this, the new commit becomes HEAD and so forth.
+
+# Less basic Git usage
 
 ## Branching
 
