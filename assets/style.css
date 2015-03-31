@@ -109,13 +109,10 @@ main a:link {
 	text-decoration-style: dotted;
 }
 
-main pre, main code {
-	background: #eee;
-}
-
 main pre {
 	white-space: pre-wrap;
 	padding: 1rem;
+	background: #eee;
 }
 
 main code {
@@ -124,7 +121,15 @@ main code {
 
 main pre code {
 	font-size: 4rem;
-	line-height: 4rem;
+	line-height: 2rem;
+	font-family: "Courier New", monospace;
+}
+
+main p code {
+	font-size: 80%;
+	font-style: italic;
+	display: inline-block;
+	font-family: "Fantasque Sans Mono", "DejaVu Sans Mono", Consolas, Monaco, "Droid Mono", "Source Code Pro", monospace;
 }
 
 .active {

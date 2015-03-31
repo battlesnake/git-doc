@@ -454,7 +454,7 @@ $ git mv blah bleh ...
 <pre><code>$ git add -u
 </code></pre>
 
-<p>Updates files which Git is already tracking.  Files which we have already
+<p>Updates files which Git is already tracking.  Files which have already
 been staged or committed will be checked for changes, and the changes will be
 staged.  Deletion counts as a "change".  Untracked files will not be staged by
 this.</p>
@@ -467,7 +467,7 @@ command, as <strong>any</strong> changes will be staged.  Think before you type 
 you don't commit anything that you don't want to commit yet.</p>
 
 <p>You could of course stage all changes with <code>git add -A</code>, then unstage specific
-changes with <code>git reset HEAD &lt;path&gt;</code> if you want to stage <strong>most</strong> changes.</p>
+changes with <code>git reset HEAD &lt;path&gt;</code>.</p>
 
 <p>Again, <code>git status</code> is your friend if you want to know what has changed and which
 changes have been staged.</p>
@@ -611,6 +611,11 @@ HEAD directly points to, it ultimately identifies a commit.</p>
 <p>When we create a new commit, that commit becomes HEAD.  If we create another
 commit after this, the new commit becomes HEAD and so forth.</p>
 
+<h2>Branching</h2>
+
+<p>Branching is not a concept unique to Git, however the way that Git implements
+it makes it extremely useful and powerful.</p>
+
 <h3>Directed acyclic graphs</h3>
 
 <p>There are two types of DAG:</p>
@@ -670,10 +675,7 @@ vertexes are located on a straight line and all edges point in the same
 direction along the line.  This means that any given commit has a linear chain
 of commits preceding it which fully describe its history.</p>
 
-<h3>Branching</h3>
-
-<p>Branching is not a concept unique to Git, however the way that Git implements
-it makes it extremely useful and powerful.</p>
+<h3>Demonstration</h3>
 
 <p>Create a new Git repository (outside the previous one we were using):</p>
 
@@ -704,7 +706,12 @@ $ git commit -m 'Initial commit'
 <p>Now we want to develop a new feature in this repository.  Specifically, we want
 to add localisation (l10n).  But we want the development of this feature to be
 independent to others that we may also start working on, so we create a branch
-for it using <code>git branch &lt;branch-name&gt; [&lt;start&gt;]</code>:</p>
+for it using</p>
+
+<pre><code>$ git branch &lt;branch-name&gt; [&lt;start&gt;]
+</code></pre>
+
+<p>Like so:</p>
 
 <pre><code>$ git branch l10n
 </code></pre>

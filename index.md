@@ -409,7 +409,7 @@ Git provides some useful shorthands:
 
 	$ git add -u
 
-Updates files which Git is already tracking.  Files which we have already
+Updates files which Git is already tracking.  Files which have already
 been staged or committed will be checked for changes, and the changes will be
 staged.  Deletion counts as a "change".  Untracked files will not be staged by
 this.
@@ -421,7 +421,7 @@ command, as **any** changes will be staged.  Think before you type though, so
 you don't commit anything that you don't want to commit yet.
 
 You could of course stage all changes with `git add -A`, then unstage specific
-changes with `git reset HEAD <path>` if you want to stage **most** changes.
+changes with `git reset HEAD <path>`.
 
 Again, `git status` is your friend if you want to know what has changed and which
 changes have been staged.
@@ -561,6 +561,11 @@ HEAD directly points to, it ultimately identifies a commit.
 When we create a new commit, that commit becomes HEAD.  If we create another
 commit after this, the new commit becomes HEAD and so forth.
 
+## Branching
+
+Branching is not a concept unique to Git, however the way that Git implements
+it makes it extremely useful and powerful.
+
 ### Directed acyclic graphs
 
 There are two types of DAG:
@@ -616,10 +621,7 @@ vertexes are located on a straight line and all edges point in the same
 direction along the line.  This means that any given commit has a linear chain
 of commits preceding it which fully describe its history.
 
-### Branching
-
-Branching is not a concept unique to Git, however the way that Git implements
-it makes it extremely useful and powerful.
+### Demonstration
 
 Create a new Git repository (outside the previous one we were using):
 
@@ -646,7 +648,11 @@ Look at which branches we have and which is active:
 Now we want to develop a new feature in this repository.  Specifically, we want
 to add localisation (l10n).  But we want the development of this feature to be
 independent to others that we may also start working on, so we create a branch
-for it using `git branch <branch-name> [<start>]`:
+for it using
+	
+	$ git branch <branch-name> [<start>]
+
+Like so:
 
 	$ git branch l10n
 
