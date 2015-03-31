@@ -4,7 +4,7 @@ cat <<EOF
 <!doctype html>
 <html>
 <head>
-<meta charset="utf8">
+<meta charset="utf-8">
 <title>$@</title>
 <link rel="stylesheet" type="text/css" href="assets/style.css">
 </head>

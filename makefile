@@ -4,9 +4,10 @@ out=$(in:%.md=%.html)
 all: $(out)
 
 %.html: %.md
-	./build/Markdown.pl < $^ > $@.tmp
-	./build/decorate.sh $(@:%.html=%) < $@.tmp > $@
-	rm -f -- $@.tmp
+	@echo -e "  [BUILD]  $@"
+	@./build/Markdown.pl < $^ > $@.tmp
+	@./build/decorate.sh $$(./build/get-title.pl < $^) < $@.tmp > $@
+	@rm -f -- $@.tmp
 
 clean:
 	rm -f -- *.html *.tmp
