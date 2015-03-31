@@ -1,5 +1,11 @@
 # Git by example
 
+*Mark K Cowan*
+
+_[hackology.co.uk](http://hackology.co.uk)_
+
+_[LinkedIn](http://uk.linkedin.com/in/photonicist)_
+
 A great guide if you are age 4 or over is available [here](https://www.youtube.com/watch?v=1ffBJ4sVUb4).
 
 Where shell commands are given in this document, commands for POSIX shells are
