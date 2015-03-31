@@ -59,14 +59,21 @@ SYNOPSIS
            &lt;command&gt; [&lt;args&gt;]
 
 DESCRIPTION
-       Git is a fast, scalable, distributed revision control system with an unusually rich command set that provides both high-level operations and full access to internals.
+       Git is a fast, scalable, distributed revision control system with an
+       unusually rich command set that provides both high-level operations
+       and full access to internals.
 
-       See gittutorial(7) to get started, then see giteveryday(7) for a useful minimum set of commands. The Git User’s Manual[1] has a more in-depth introduction.
+       See gittutorial(7) to get started, then see giteveryday(7) for a
+       useful minimum set of commands. The Git User’s Manual[1] has a more
+       in-depth introduction.
 
-       After you mastered the basic concepts, you can come back to this page to learn what commands Git offers. You can learn more about individual Git commands with "git help command". gitcli(7) manual page gives you an overview
-       of the command-line command syntax.
+       After you mastered the basic concepts, you can come back to this page
+       to learn what commands Git offers. You can learn more about
+       individual Git commands with "git help command". gitcli(7) manual
+       page gives you an overview of the command-line command syntax.
 
-       Formatted and hyperlinked version of the latest Git documentation can be viewed at http://git-htmldocs.googlecode.com/git/git.html.
+       Formatted and hyperlinked version of the latest Git documentation can
+       be viewed at http://git-htmldocs.googlecode.com/git/git.html.
 
 ...
 </code></pre>
@@ -1400,7 +1407,7 @@ feature:        X---&gt;Y---&gt;C'--&gt;D'
 </code></pre>
 
 <p>This will make the history messy though, and creates a new commit in <code>feature</code>
-for each new commit in <code>master.  When we merge</code>feature<code>back into</code>master`,
+for each new commit in <code>master</code>.  When we merge <code>feature</code> back into <code>master</code>,
 then things will get <strong>really</strong> messy, and we may get a load of merge conflicts
 too.</p>
 
@@ -1435,8 +1442,8 @@ calling <code>git rebase --skip</code>.  To abort a failed rebase, call <code>gi
 
 <h3>Moving the children of one commit onto another commit</h3>
 
-<p>Cut the children of branch/commit <code>Y</code> off their parent <code>X</code> and move them into
-the position currently occupied by commit/branch <code>A</code>:</p>
+<p>Cut the children of branch/commit <code>Y</code> off their parent <code>X</code> and move them onto
+commit/branch <code>A</code>:</p>
 
 <pre><code>$ git rebase --onto=&lt;commit A&gt; &lt;commit Y&gt; [&lt;branch-name&gt;]
 </code></pre>
@@ -1593,9 +1600,6 @@ $ git fsck --lost-found
 <p>Check your working tree to ensure that this is indeed the commit that you want
 to rescue.</p>
 
-<p>As the commit is at the top of a branch (or indeed on any branch), HEAD no
-longer points to a branch.  Thus you will get a warning about "detached HEAD".</p>
-
 <p>Create a branch from this commit:</p>
 
 <pre><code>$ git branch &lt;branch-name&gt; HEAD
@@ -1611,7 +1615,7 @@ just use this instead:</p>
 sure).</p>
 
 <p>Commits that are removed from history will be periodically deleted by Git, so
-rescue them sooner than later if you don't want them to be deleted.</p>
+rescue them sooner rather than later if you don't want them to be deleted.</p>
 
 <p>One can force the deletion of these "dangling" commits with <code>git gc</code>, however
 there is almost never any reason to manually call this, so I would not advise

@@ -132,6 +132,12 @@ main p code {
 	font-family: "Fantasque Sans Mono", "DejaVu Sans Mono", Consolas, Monaco, "Droid Mono", "Source Code Pro", monospace;
 }
 
+main blockquote {
+	border-left: 1rem solid #ddd;
+	color: #777;
+	padding: 0 4rem;
+}
+
 .active {
 	background: #f8f;
 }
