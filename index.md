@@ -5,6 +5,9 @@ A great guide if you are age 4 or over is available [here](https://www.youtube.c
 Where shell commands are given in this document, commands for POSIX shells are
 prefixed with `$` and commands for Windows shell are prefixed by `>`.  If no
 Windows command is given, then the Windows command is the same as the POSIX one.
+Lines beginning with a `#` are comments, and can be omitted.
+
+A cheatsheet is at the end of this document.
 
 # Introduction - What is Git?
 
@@ -964,6 +967,13 @@ tip of `master`.  No conflicts and no merge commit needed.
 
 ### Editing history and stamping on butterflies (rebase)
 
+I strongly recommend reading the manpage for `git rebase`.  Rebase is a very
+useful and powerful tool which, if used incorrectly, can cause lots of problems
+that are not always easy to fix.  The manpage has lots of nice graph diagrams to
+explain what various rebase operations do.
+
+	$ git rebase --help
+
 Another method is `rebase`.  This allows us to insert and remove commits into
 the current branch's history, in addition to squashing several consecutive
 commits into one.  Remember that any changes to history will alter the checksums
@@ -1008,11 +1018,11 @@ TODO: deleting local branches
 
 # Beware of...
 
-## Reset --hard
+Reset `--hard`
 
-## Rebase
+Rebase
 
-## Anything involving "--force" or "-f"
+Anything involving "--force" or "-f"
 
 # Useful aliases
 
@@ -1051,3 +1061,393 @@ Display entire history of all branches as a graph, with shortened commit IDs
 Add some graph diagrams
 
 Bare repositories, remotes, fetch/pull, tags+GPG, github, npm, cherry-pick, sobmodules...
+
+# Cheatsheet
+
+## Handle files beginning with hyphen
+
+Put double-hyphen before list of filename(s) / path(s):
+
+	# Create file with annoying name
+	$ echo Annoying > --annoying
+
+	# Stage file
+	$ git add -- --annoying
+
+	# Unstage file
+	$ git reset -- --annoying
+
+	# Delete file (POSIX)
+	$ rm -- --annoying
+
+## Staging changes:
+
+New file / modified file:
+
+	$ git add <path>
+
+Delete file / deleted file:
+
+	$ git rm <path>
+
+Move file:
+
+	$ git mv <source> <dest>
+
+## Unstaging / undoing changes:
+
+Undo a `git add`:
+
+	$ git reset <path>
+
+Revert deleted/modified file to version in staging area or in HEAD:
+
+	$ git checkout <path>
+
+Undo a `git rm`:
+
+	$ git reset <path>
+	$ git checkout <path>
+
+Unstage changes/deletion to file and revert it to version in HEAD:
+
+	$ git reset --hard <path>
+
+_WARNING_: The following clears the staging area and reverts the entire working
+tree to the same state as HEAD.  It will _DESTROY_ any un-committed changes:
+
+	$ git reset --hard
+
+## Viewing changes
+
+Simple, shows which changes are staged and which are not:
+
+	$ git status
+
+Detailed, show changes which are not staged (diff working tree vs. index):
+
+	$ git diff
+
+Working tree or staged changes, vs. some other commit:
+
+	$ git diff [--staged] <commit>
+
+Changes between two commits (optionally, just changes within one path/file):
+
+	$ git diff <commit-A> <commit-B> [<path>]
+
+Alternatively (ommitting either commit will implicitly use HEAD):
+
+	$ git diff <commit-A>..<commit-B>
+
+## Committing changes
+
+Simply:
+
+	$ git commit
+
+To specify the commit message:
+
+	$ git commit -m 'message'
+
+To add currently staged changes to previous commit (HEAD):
+
+	$ git commit --amend
+
+Note that this will alter the checksum of the commit, so do not do this to any
+commit that has already been merged or pushed.
+
+## Branching
+
+Switch to branch:
+
+	$ git checkout <branch-name>
+
+Create branch (does not switch to it):
+
+	$ git branch <branch-name>
+
+Create branch and switch to it:
+
+	$ git checkout -b <branch-name>
+
+Create a branch starting at commit or branch `start` and switch to it:
+
+	$ git checkout -b <branch-name> <start>
+
+Merge branch `feature` into branch `master`:
+
+	# Switch to master if we aren't already on it
+	$ git checkout master
+
+	# Merge feature into current branch (master in this case)
+	$ git merge feature
+
+Delete a branch only if it has been merged:
+
+	$ git branch -d <branch-name>
+
+Delete a branch even if it has not been merged:
+
+	$ git branch -D <branch-name>
+
+## View history
+
+You should probably alias some of these commands into your `.bashrc` rather than
+typing them out manually every time.  I only use the last one, which I have
+aliased as `gg` ("git graph").
+
+Detailed log of current branch:
+
+	$ git log
+
+Less detailed log of current branch:
+
+	$ git log --format=oneline
+
+Like above, but show commits from all branches (`--all`):
+
+	$ git log --format=oneline --all
+
+Like above, but show branch/pointer/tag names (`--decorate`):
+
+	$ git log --format=oneline --all --decorate
+
+Like above, but show history graph (`--graph`):
+
+	$ git log --graph --all --oneline --decorate
+
+Show full graphical history in colour, including all branches, and with
+abbreviated hashes:
+
+	$ git log --graph --all --oneline --decorate --full-history --color --pretty=format:"%x1b[31m%h%x09%x1b[32m%d%x1b[0m%x20%s"
+
+## Rewriting history (rebasing / amending)
+
+Do not do this...  you will probably lose stuff or have trouble checking in.
+
+Read the manpages first:
+
+	$ git commit --help
+
+	$ git rebase --help
+
+	$ git cherry-pick --help
+
+### Amending commits
+
+Add currently staged changes to commit HEAD:
+
+	$ git commit --amend
+
+### Rebasing a branch
+
+Assume we branched `feature` from `master`, and other people have since merged
+new features/fixes into `master`:
+
+	master:  A--->B--->C--->D
+	               \
+	feature:        X--->Y
+
+We want to ensure that our feature will work with these new changes, so we need
+to incorporate the new commits to `master` into our `feature` branch.  We could
+use `git merge`:
+
+	master:  A--->B-------->C--->D
+	               \         \    \
+	feature:        X--->Y--->C'-->D'
+
+This will make the history messy though, and creates a new commit in `feature`
+for each new commit in `master.  When we merge `feature` back into `master`,
+then things will get **really** messy, and we may get a load of merge conflicts
+too.
+
+	master:  A--->B-------->C--->D---------E
+	               \         \    \       /
+	feature:        X--->Y--->C'-->D'--->Z
+
+Instead, we can use `git rebase` to move `feature`, so that it starts from the
+tip of `master`:
+
+	# Assuming we are on "feature" (use "git branch" to check)
+	$ git rebase master
+
+	# If we aren't not on "feature" - this will checkout feature before rebasing
+	$ git rebase master feature
+
+This gives us:
+
+	master:  A--->B--->C--->D
+	                         \
+	feature:                  X'-->Y'
+
+Note: Because the history behind commits X and Y have changed, their hashes are
+now different.
+
+We may get merge failures when we rebase, if git detects conflicts.  We can
+either resolve them then run `git rebase --continue`, or ignore a failure by
+calling `git rebase --skip`.  To abort a failed rebase, call `git rebase --abort`.
+
+### Moving the children of one commit onto another commit
+
+Cut the children of branch/commit `Y` off their parent `X` and move them into
+the position currently occupied by commit/branch `A`:
+
+	$ git rebase --onto=<commit A> <commit Y> [<branch-name>]
+
+Before:
+
+	A--->B--->C--->D--->E
+
+Command:
+
+	$ git rebase --onto=<commit A> <commit C>
+
+After:
+
+	A--->D--->E
+
+Note that this only affects the current branch, see the manpage for `git rebase`
+for more information, and for how to solve the problems that arise due to child
+branches of the rebased one.
+
+## Configuring remotes
+
+In order to synchronise your repository with others, it is necessary to configure
+remotes.  If you used `git clone` to get your repository, then the URL which you
+cloned from will already be configured as a remote with the name you specified
+(or "origin" if no name was specified).
+
+The actual name that you give a remote is only used locally - so call it whatever
+you want.
+
+### Add a remote
+
+	$ git remote add <name> <URL>
+
+### Removing a remote
+
+	$ git remote rm <name>
+
+### Renaming a remote
+
+	$ git remote rename <old-name> <new-name>
+
+## Receiving
+
+### Fetch
+
+Typically, you will never need to use:
+
+	# Defaults to "origin" if no `remote-name` is specified.
+	$ git fetch [<remote-name>]
+
+This downloads commits from the remote, but does not update your local history
+or HEAD or your working tree.  To merge, use either of:
+
+	$ git merge <remote-name>/<branch-name>
+
+	$ git merge FETCH_HEAD
+
+But don't use the above fetch/merge process at all without good reason, you will
+typically want to use `pull` instead.
+
+### Pull
+
+To download commits from a remote and also to update the working tree, history,
+and HEAD; use `git pull`:
+
+	$ git pull [<remote-name>] [<branch-name>]
+
+Typically, you want to get the latest version of `master` branch from remote
+`origin` so that you can merge your local branches into it:
+
+	$ git pull origin master
+
+This will cause any new commit to `master` in the remote to be applied to your
+local `master`, synchronising their histories.  If you have commits in `master`
+locally which are not in the remote, then a merge will take place.  If there are
+merge conflicts, then you will be notified and asked to resolve them.
+
+To cancel a failed (conflicting) merge:
+
+	$ git reset --merge
+
+To keep things simple, you can tell Git to only merge the new commits in if this
+can be done via "fast-forward", i.e. simply adding them onto the tip of the
+local branch:
+
+	$ git pull origin master --ff-only
+
+This will fail if you have local commits on `master` which origin does not have
+on its version of `master`.  You can then review these commits in `git log` to
+see whether a
+
+`git pull` actually runs `git fetch` to get the new commits from the remote,
+followed by `git merge` to merge them into the local branch.
+
+### Pull with rebase
+
+An alternative to merging if there are new commits in both the remote and the
+local, is to rebase the local commits onto the tip of the remote branch, so that
+the remote's new commits appear behind your new local commits.  To achieve this,
+use the `--rebase` option:
+
+	$ git pull --rebase [<remote-name>] [<branch-name>]
+
+If the rebase completes without any conflicts, then you will have a linear
+history for these new local and remote commits rather than `master` splitting
+into two branches then merging again afterwards.
+
+## Sending
+
+To update a remote branch with new commits from your local one, use:
+
+	$ git push [<remote-name>] [<branch-name>]
+
+For example:
+
+	$ git push origin master
+
+If the remote has new commits which are not in your local branch, the push will
+be rejected.  Never use the `-f` or `--force` option as this will delete the new
+commits from the remote.  Instead, either use `git pull` and resolve the merge
+conflict, or use `git pull --rebase` to insert the new remote commits before
+your new local commits.
+
+## Rescue lost commits (e.g. lost with rebase / reset / "branch -D")
+
+Do you have the commit ID available?  If not, use the following to find it:
+
+	$ git reflog
+
+	$ git fsck --lost-found
+
+Now checkout the commit:
+
+	$ git checkout <commit>
+
+Check your working tree to ensure that this is indeed the commit that you want
+to rescue.
+
+As the commit is at the top of a branch (or indeed on any branch), HEAD no
+longer points to a branch.  Thus you will get a warning about "detached HEAD".
+
+Create a branch from this commit:
+
+	$ git branch <branch-name> HEAD
+
+Note that you can skip the `checkout` if you are certain of the commit ID and
+just use this instead:
+
+	$ git branch <branch-name> <commit>
+
+Your commit is now visible again in the history (check the git log graph to be
+sure).
+
+Commits that are removed from history will be periodically deleted by Git, so
+rescue them sooner than later if you don't want them to be deleted.
+
+One can force the deletion of these "dangling" commits with `git gc`, however
+there is almost never any reason to manually call this, so I would not advise
+it unless you are on a small embedded system and want to free up space.
