@@ -1,0 +1,1609 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf8">
+<title>index</title>
+<link rel="stylesheet" type="text/css" href="assets/style.css">
+</head>
+<body>
+<nav>
+</nav>
+<main>
+<h1>Git by example</h1>
+
+<p>A great guide if you are age 4 or over is available <a href="https://www.youtube.com/watch?v=1ffBJ4sVUb4">here</a>.</p>
+
+<p>Where shell commands are given in this document, commands for POSIX shells are
+prefixed with <code>$</code> and commands for Windows shell are prefixed by <code>&gt;</code>.  If no
+Windows command is given, then the Windows command is the same as the POSIX one.
+Lines beginning with a <code>#</code> are comments, and can be omitted.</p>
+
+<p>A cheatsheet is at the end of this document.</p>
+
+<h1>Introduction - What is Git?</h1>
+
+<p>Is it source control?  Is it versioning software?  Is it X?</p>
+
+<p><em>NO</em></p>
+
+<p>Dictionary:</p>
+
+<pre><code>Git (adjective) [British English] - an unpleasant person
+</code></pre>
+
+<p>Torvalds:</p>
+
+<blockquote>
+  <p>I'm an egotistical bastard, and I name all my projects after myself.
+First 'Linux', now 'git'.</p>
+</blockquote>
+
+<p>Manpage:</p>
+
+<pre><code>$ man git
+
+NAME
+       git - the stupid content tracker
+
+SYNOPSIS
+       git [--version] [--help] [-C &lt;path&gt;] [-c &lt;name&gt;=&lt;value&gt;]
+           [--exec-path[=&lt;path&gt;]] [--html-path] [--man-path] [--info-path]
+           [-p|--paginate|--no-pager] [--no-replace-objects] [--bare]
+           [--git-dir=&lt;path&gt;] [--work-tree=&lt;path&gt;] [--namespace=&lt;name&gt;]
+           &lt;command&gt; [&lt;args&gt;]
+
+DESCRIPTION
+       Git is a fast, scalable, distributed revision control system with an unusually rich command set that provides both high-level operations and full access to internals.
+
+       See gittutorial(7) to get started, then see giteveryday(7) for a useful minimum set of commands. The Git User’s Manual[1] has a more in-depth introduction.
+
+       After you mastered the basic concepts, you can come back to this page to learn what commands Git offers. You can learn more about individual Git commands with "git help command". gitcli(7) manual page gives you an overview
+       of the command-line command syntax.
+
+       Formatted and hyperlinked version of the latest Git documentation can be viewed at http://git-htmldocs.googlecode.com/git/git.html.
+
+...
+</code></pre>
+
+<p>The key word there is <em>distributed</em>.  It is a very simple content-tracker. Where
+most revision control systems aredesigned to be used in conjunction with some
+central server, and are pretty much useless without it, Git is designed to be
+fully-capable when run locally on one machine - the remote communication
+abilities of git could almost be considered an "afterthought", given that a
+local Git repository offers more power and flexibility than most traditional
+"centralised" revision control systems.  This isn't a criticism of Git's remote
+capabilities, merely a testament to how much can be done with it <strong>without</strong>
+hooking it up to some central server.</p>
+
+<p>To those familiar with other systems, Git can seem very strange and unintuitive.
+You'll find constant references to graph theory and checksums when reading Git's
+manual, which can make it seem overcomplicated at first.  In practise, this is
+actually a side-effect of the simplicity of Git's design - you're much closer to
+the internals of the system with Git than with typical systems.  This makes it
+easier to understand what Git is actually doing when you give it a command, so
+you're less likely to get unexpected behaviour and thus less likely to piss off
+all your colleagues.</p>
+
+<p>Git had several key design criteria:</p>
+
+<ul>
+<li><p>Speed.  To be useful for Linux kernel development, it must be able to support
+hundreds of concurrent users and still have response times of at most a few
+seconds.  In the case of the Linux kernel, there are around 2,000 developers
+working from locations worldwide, with a code-base containing approximately
+20,000,000 lines of code as of kernel 4.0.</p></li>
+<li><p>Be distributed.  There's that word again - I'll explain it in more detail
+soon.</p></li>
+<li><p>Be extremely resilient.  It must be damn-near impossible for data in a
+repository to be corrupted either accidentally or maliciously and
+intentionally.  This design goal vindicated itself in 2011, when the
+kernel.org site was hacked.  Later, we'll come onto how the source code
+remained safe despite the "central" server being completely raped.</p></li>
+<li><p>To date, the only serious security vulnerability regarding Git was caused by
+deficiencies in Microsoft's NTFS and Apple's HFS+ file systems.  While
+Microsoft fixed their vulnerability, Apple actively refused to fix theirs,
+so some Git operations may fail in Apple HFS+ filesystems if Git cannot
+guarantee being able to execute the action securely.</p></li>
+<li><p>Take CVS as an example of what <strong>not</strong> to do.  If in doubt over how to do
+something, do the opposite of what CVS does.</p></li>
+</ul>
+
+<h1>What's the fuss with "distributed"?</h1>
+
+<p>When 1000+ kernel developers are working on the same codebase, that could create
+a lot of traffic for a centralised control system.  Additionally, developers
+don't like having their workflow interrupted by a flakey internet connection.</p>
+
+<p>Hence, all of git's "remote" capabilities are also possible "locally", with no
+remote server even configured.  You can use whatever workflow you want to develop
+features locally, as long as you follow the community/group/organisation rules
+when you push the result of your work to the shared repository.</p>
+
+<p>In order to explain any more at this point, it becomes necessary to show a few
+Git commands.</p>
+
+<h1>Basic Git usage</h1>
+
+<h2>Structure of a git repository</h2>
+
+<p>A typical Git repository is just a normal folder which contains a <code>.git</code> folder
+within it.  This <code>.git</code> folder holds all the data required for managing the
+repository, so you don't end up with <code>.svn</code> folders scattered all over your
+project.</p>
+
+<p>Files not in a Git repository:</p>
+
+<pre><code>~/not-a-repository
+    my-file
+    my-folder/
+        my-other-file
+</code></pre>
+
+<p>Same files now in a Git repository:</p>
+
+<pre><code>~/a-git-repository
+    my-file
+    my-folder/
+        my-other-file
+
+    .git/
+        config
+        description
+        HEAD
+        branches/
+        hooks/
+        info/
+        objects/
+        refs/
+</code></pre>
+
+<p>99.9% of Git users will never need to look inside the <code>.git</code> folder.  On most
+UNIX-like systems they won't even see it, as prefixing a filename with a dot
+is similar to marking a file as "Hidden" in Windows.</p>
+
+<p>A typical Git repository has three main components that one should be aware of:</p>
+
+<ul>
+<li><p>The working tree ("your files")</p></li>
+<li><p>The staging area (also called the "index")</p></li>
+<li><p>History ("the repository" or "branches, commits, tags and all that stuff")</p></li>
+</ul>
+
+<p>You edit your files as you usually would, in the working tree.  You then stage
+the changes, which stores copies of them in the staging area.  You then commit
+the changes.  The history is a collection of commits.  When you "download" a
+repository via Git (typically via <code>git clone</code>) then you are receiving the
+history as a series of commits.  When you publish local changes to a remote
+repository, you "upload" your commits.</p>
+
+<h3>Working tree</h3>
+
+<p>This is where your files would normally be if you weren't using Git to track
+them.  Editing your files is no different when you have them in a Git
+repository.</p>
+
+<h3>Staging area</h3>
+
+<p>When you want to "check in" a load of changes, you <strong>stage</strong> them then you
+<strong>commit</strong> them.  The staging area contains the changes that you want to commit
+to the repository.</p>
+
+<h2>Creating Git repositories</h2>
+
+<p>Create a new repository in a new folder:</p>
+
+<pre><code>mkdir my-project
+cd my-project
+git init
+</code></pre>
+
+<p>Create a repository in an existing folder:</p>
+
+<pre><code>cd my-project
+git init
+</code></pre>
+
+<p>Create a repository in the current folder:</p>
+
+<pre><code>git init
+</code></pre>
+
+<p>Create a bare repository (we'll come onto what these are later):</p>
+
+<pre><code>git init --bare
+</code></pre>
+
+<h2>Working in the working tree</h2>
+
+<p>Create a new repository:</p>
+
+<pre><code>$ mkdir git-demo
+$ cd git-demo
+$ git init
+</code></pre>
+
+<p>Let's create a file in the working tree:</p>
+
+<pre><code>$ echo Hello &gt; my-file
+$ echo World &gt;&gt; my-file
+</code></pre>
+
+<p>Let's check the status of the repository:</p>
+
+<pre><code>$ git status
+
+Untracked files:
+    my-file
+</code></pre>
+
+<p>Git tells us that the file is not being tracked - so now let's stage the file:</p>
+
+<pre><code>$ git add my-file
+</code></pre>
+
+<p>Let's check the status again:</p>
+
+<pre><code>$ git status
+
+Changes to be committed:
+    new file: my-file
+</code></pre>
+
+<p>Great - Git knows about the file now!  Let's add the file to our history by
+committing it:</p>
+
+<pre><code>$ git commit
+</code></pre>
+
+<p>If you have not used Git yet, then it may ask you to configure your name and
+e-mail address - follow the instructions that Git gives, then try <code>git commit</code>
+again.</p>
+
+<p>An editor opened and we are prompted for a commit message - let's call it "Added
+my-file".  Save your commit message and close the editor.</p>
+
+<p>Let's view the history:</p>
+
+<pre><code>$ git log
+
+commit [hexadecimal hash]
+Author: [your name] &lt;[your e-mail]&gt;
+Date: [commit date/time]
+
+    Added my-file
+</code></pre>
+
+<p>You may find it useful to use the following instead.  I have it aliased to <code>gl1</code>:</p>
+
+<pre><code>$ git log --format=oneline
+
+* [hexadecimal hash] Added my-file
+</code></pre>
+
+<p>Now let's add another file:</p>
+
+<pre><code>$ echo Hi &gt; other-file
+
+$ git status
+
+Untracked files:
+    other-file
+
+$ git status
+
+Changes to be committed:
+    new file: other-file
+
+$ git commit -m 'Added other-file'
+
+$ git status
+
+nothing to commit, working directory clean
+
+$ git log --format=oneline
+
+[hexadecimal hash] Added other-file
+[hexadecimal hsah] Added my-file
+</code></pre>
+
+<p>Note that we used <code>git commit -m &lt;message&gt;</code> to specify a commit message on the
+command line instead of via a text editor.  The <code>git status</code> commands are
+optional, I put those in so you can see the effects of the other commands.</p>
+
+<h2>Undelete</h2>
+
+<p>Let's delete <code>other-file</code>:</p>
+
+<p>POSIX:</p>
+
+<pre><code>$ rm my-file
+</code></pre>
+
+<p>Windows:</p>
+
+<pre><code>&gt; del my-file
+</code></pre>
+
+<p>Oops!  We deleted the wrong file.  To restore it, we have several options:</p>
+
+<h3>Restore a single file:</h3>
+
+<pre><code>$ git checkout my-file
+</code></pre>
+
+<p>Note that if we have added a file to the staging area, we can restore it via
+this method even if the file is not committed.</p>
+
+<pre><code>$ echo Corruption &gt; my-file
+</code></pre>
+
+<p>Oops, we wrecked the file.  Again, we can restore it to the last staged/committed
+version via <code>git checkout</code>.</p>
+
+<pre><code>$ git checkout my-file
+</code></pre>
+
+<p>Now let's screw things up a bit more:</p>
+
+<p>POSIX:</p>
+
+<pre><code>$ rm *
+</code></pre>
+
+<p>Windows:</p>
+
+<pre><code>&gt; del *
+</code></pre>
+
+<p>Oops!  We deleted all our files from the repository!</p>
+
+<h3>Restore the entire working tree</h3>
+
+<pre><code>$ git checkout .
+</code></pre>
+
+<p>This will restore the current directory and everything inside it to the contents
+of the staging area and the current commit (HEAD).  We'll come onto HEAD a bit
+later.</p>
+
+<h2>Removing a file</h2>
+
+<p>So now let's remove that file as we originally wanted to:</p>
+
+<p>POSIX:</p>
+
+<pre><code>$ rm other-file
+</code></pre>
+
+<p>Windows:</p>
+
+<pre><code>&gt; del other-file
+</code></pre>
+
+<p>Check the status:</p>
+
+<pre><code>$ git status
+
+Changes not staged for commit:
+    deleted: other-file
+</code></pre>
+
+<p>Stage the change:</p>
+
+<pre><code>$ git add other-file
+
+(or)
+
+$ git rm other-file
+</code></pre>
+
+<p>Check the status:</p>
+
+<pre><code>$ git status
+
+Changes to be committed:
+    deleted: other-file
+</code></pre>
+
+<p>Actually, let's un-stage this change so I can show another way to stage changes:</p>
+
+<pre><code>$ git reset HEAD other-file
+
+Unstaged changes after reset:
+D   other-file
+</code></pre>
+
+<p>This hasn't restored the file, it has simply un-staged the change.  If we check
+the status:</p>
+
+<pre><code>$ git status
+
+Changes not staged for commit:
+    deleted: other-file
+</code></pre>
+
+<h2>Staging many changes at once</h2>
+
+<p>To restore the file to the working tree, we would use <code>git checkout other-file</code>
+as we used previously.  But we don't want to restore it in this case, we want to
+delete it:</p>
+
+<pre><code>$ git rm other-file
+
+$ git commit -m 'Removed other-file'
+</code></pre>
+
+<p><code>git rm</code> removes the file and also stages the change.  You can also use <code>git mv</code>
+to move a file and stage the change.  By telling Git that you've moved the file,
+we guarantee that Git won't think that the new filename is a totally new file -
+so Git won't end up with two copies of the same data in its history.  Git is
+fairly smart though, and can often detect moves/renames even if the file has also
+been edited a little.  This is useful as I always forget to use <code>git mv</code>...</p>
+
+<p>I also always forget to use <code>git rm</code>.  After a large refactor, I may have
+added/removed/moved/renamed many files.  Rather than trying to describe each
+change to git with individual staging commands:</p>
+
+<pre><code>$ git add file1 file2 dirA/file3 .......
+$ git rm file4 dirB/ dirC/ ...
+$ git mv blah bleh ...
+</code></pre>
+
+<p>Git provides some useful shorthands:</p>
+
+<pre><code>$ git add -u
+</code></pre>
+
+<p>Updates files which Git is already tracking.  Files which we have already
+been staged or committed will be checked for changes, and the changes will be
+staged.  Deletion counts as a "change".  Untracked files will not be staged by
+this.</p>
+
+<pre><code>$ git add -A
+</code></pre>
+
+<p>Like <code>git add -u</code>, but also stages untracked files.  This is a <strong>really</strong> useful
+command, as <strong>any</strong> changes will be staged.  Think before you type though, so
+you don't commit anything that you don't want to commit yet.</p>
+
+<p>You could of course stage all changes with <code>git add -A</code>, then unstage specific
+changes with <code>git reset HEAD &lt;path&gt;</code> if you want to stage <strong>most</strong> changes.</p>
+
+<p>Again, <code>git status</code> is your friend if you want to know what has changed and which
+changes have been staged.</p>
+
+<h2>Viewing changes (diff)</h2>
+
+<pre><code>$ echo Hello &gt; my-file
+$ echo Estonia &gt;&gt; my-file
+</code></pre>
+
+<p>To view changes between a file and the index, use <code>git diff [&lt;filename&gt;]</code>:</p>
+
+<pre><code>$ git diff
+
+...
+@@ -1,2 +1,2 @@
+ Hello
+-World
++Estonia
+</code></pre>
+
+<p>This would show changes to all files - to view changes to a particular file,
+pass a filename:</p>
+
+<pre><code>$ git diff my-file
+
+(same result as before)
+</code></pre>
+
+<p>To view the changes between the current state and a particular commit, use
+<code>git diff [&lt;first few digits of commit ID&gt;]</code></p>
+
+<pre><code>$ git log --format=oneline
+
+...
+7ccf142fff1c5f0a6e11ea6d07f3b144402034ff Added my-file
+
+$ git diff 7ccf
+
+(same result as before)
+</code></pre>
+
+<p>If we want to view the changes between commit A and B, we can use
+<code>git diff &lt;commit A checksum&gt; &lt;commit B checksum&gt;</code></p>
+
+<p>To prevent <code>git diff</code> from accidentally interpreting a filename as a commit ID,
+you can put <code>--</code> before the filenames:</p>
+
+<pre><code>$ git diff -- [&lt;path&gt;] [&lt;path&gt;] ...
+
+$ git diff &lt;commit&gt; -- [&lt;path&gt;] [&lt;path&gt;] ...
+
+$ git diff &lt;commit A&gt; &lt;commit B&gt; -- [&lt;path&gt;] [&lt;path&gt;] ...
+</code></pre>
+
+<p>You do not need to specify the entire checksum, the first four digits are usually
+sufficient.</p>
+
+<h2>Undo</h2>
+
+<h3>Working tree</h3>
+
+<p>To revert/restore files in the working tree, we can use <code>git checkout</code>:</p>
+
+<pre><code>$ git checkout file-to-restore
+
+$ git checkout path-to-restore/
+</code></pre>
+
+<p>This restores the working tree from the staging area if possible, or HEAD
+otherwise.  There's the mysterious <strong>HEAD</strong> again, I promise I'll come onto it
+soon!</p>
+
+<h3>Staging area (index)</h3>
+
+<p>To unstage a change, we use <code>git reset</code>:</p>
+
+<pre><code>$ git reset HEAD file-to-unstage
+
+$ git reset HEAD path-to-restore/
+</code></pre>
+
+<p>This does not affect the working tree, it simply makes Git forget about changes
+we had staged previously.</p>
+
+<h3>History</h3>
+
+<p>See next section</p>
+
+<h2>Time-travel: using the history</h2>
+
+<p>Now it's time for me to go hardcore on yo asses.  In this section, we'll finally
+learn what <strong>HEAD</strong> is, and maybe learn some basic graph theory too.  From here,
+we will get onto branching, commit chains, and using Git's history.</p>
+
+<p>When we create a <strong>commit</strong>, the following data is stored:</p>
+
+<ul>
+<li><p>Committer's name, e-mail address</p></li>
+<li><p>The date and time</p></li>
+<li><p>Our staged changes</p></li>
+<li><p>A checksum</p></li>
+<li><p>The parent commit</p></li>
+</ul>
+
+<p>The first three we have already seen, however the last two are important
+concepts for anyone who wants to get the most out of Git.  I assume that you
+know what a checksum (or "hash") is - if not, consult
+<a href="http://en.wikipedia.org/wiki/Checksum">Wikipedia</a>.</p>
+
+<h3>That weird hexadecimal crap</h3>
+
+<p>Commits are identified by their checksum.  This means that the "ID" of a commit
+is dependent on the contents of the commit.  Hence, if the contents of the commit
+are modified, then it's checksum will change and any references to it will fail.
+This functions as a security feature and as a way to detect corruption.</p>
+
+<p>But how can we tell if some evil hacker has inserted a new commit into our
+history and just modified the parent commits in a similar way to inserting data
+into a linked list?  Simple - the checksum of a commit is a checksum of not just
+its data, but also of the previous commit's checksum.  If the history chain is
+modified at all, the checksums will all change.  Since Git is decentralised,
+everyone has their own local copy of the repository's history, so when they try
+to synchronize (push/pull) with the corrupted one, they will be notified that
+there is something wrong, and can restore the repository's history from their
+own local copies.</p>
+
+<p>Git uses the SHA1 hashing algorithm.</p>
+
+<h3>HEAD</h3>
+
+<p>Finally.  HEAD.  What is it?</p>
+
+<p>Slight anti-climax - HEAD is simply a pointer to the commit that we're basing our
+current changes on.  When we tell git to stage changes, it looks at changes
+between the files in our working tree and the commit that HEAD points to.</p>
+
+<p>HEAD can also point to branches, which in turn point to commits.  No matter what
+HEAD directly points to, it ultimately identifies a commit.</p>
+
+<p>When we create a new commit, that commit becomes HEAD.  If we create another
+commit after this, the new commit becomes HEAD and so forth.</p>
+
+<h3>Directed acyclic graphs</h3>
+
+<p>There are two types of DAG:</p>
+
+<ul>
+<li><p>A <a href="https://www.youtube.com/watch?v=zH64dlgyydM">small four-legged animal</a></p></li>
+<li><p>A directed acyclic graph</p></li>
+</ul>
+
+<p>We are concerned with the latter type of DAG.</p>
+
+<p>Each of our commits points to one or zero parent commits.  Thus, from any
+commit <strong>X</strong>, we can form a chain which goes back to some initial commit.  This
+chain of commits represents the history leading up to <strong>X</strong>.</p>
+
+<p>There is quite a difference between a "graph" and a "chart".  Charts present
+information visually, while a "graph" is a load of points (vertexes) connected
+by links (edges).</p>
+
+<p>In a directed graph, each edge is an arrow which points from one vertex to
+another.  Our commit chain is like this - each commit has an arrow pointing to
+its parent commit, except for the first commit which (like Batman) has no
+parent.</p>
+
+<p>An acyclic graph is a directed graph which has no cycles.  Choose a vertex in a
+directed graph.  If by following arrows, you can get back to the same vertex
+that you started on, then the graph is cyclic.  Commit chains have no cycles,
+so they form acyclic graphs.</p>
+
+<p>Cyclic (cycle: A->B->C->A):</p>
+
+<pre><code>  ---&gt;   ----&gt;
+ /    \ /     \
+A      B--&gt;C--&gt;D
+ \        /
+  &lt;-------
+</code></pre>
+
+<p>Acyclic:</p>
+
+<pre><code>A--&gt;B--&gt;C--&gt;D
+</code></pre>
+
+<p>Also acyclic (note the directions of the arrows):</p>
+
+<pre><code>  ---&gt;   ----&gt;
+ /    \ /     \
+A      B--&gt;C--&gt;D
+ \        /
+  -------&gt;
+</code></pre>
+
+<p>Your git history is a directed acyclic graph.</p>
+
+<p>A cool thing about DAGs is that they can be "straightened" out such that all
+vertexes are located on a straight line and all edges point in the same
+direction along the line.  This means that any given commit has a linear chain
+of commits preceeding it which fully describe its history.</p>
+
+<h3>Branching</h3>
+
+<p>Branching is not a concept unique to Git, however the way that Git implementes
+it makes it extremely useful and powerful.</p>
+
+<p>Create a new Git repository (outside the previous one we were using):</p>
+
+<pre><code>$ mkdir branching
+$ cd branching
+$ git init
+</code></pre>
+
+<p>Create a file:</p>
+
+<pre><code>$ echo Hello &gt; file
+$ echo World &gt;&gt; file
+</code></pre>
+
+<p>Commit it:</p>
+
+<pre><code>$ git add file
+$ git commit -m 'Initial commit'
+</code></pre>
+
+<p>Look at which branches we have and which is active:</p>
+
+<pre><code>$ git branch
+
+ * master
+</code></pre>
+
+<p>Now we want to develop a new feature in this repository.  Specifically, we want
+to add localisation (l10n).  But we want the development of this feature to be
+independent to others that we may also start working on, so we create a branch
+for it using <code>git branch &lt;branch-name&gt; [&lt;start&gt;]</code>:</p>
+
+<pre><code>$ git branch l10n
+</code></pre>
+
+<p>This creates the branch, starting from the HEAD commit since we didn't specify
+a commit name or branch name as the <code>start</code> parameter.  It does NOT switch us
+to the branch.  To see which branch we're on, use:</p>
+
+<pre><code>$ git branch
+
+   l10n
+ * master
+</code></pre>
+
+<p>Switch to the new branch we created:</p>
+
+<pre><code>$ git checkout l10n
+</code></pre>
+
+<p>A shortcut for creating a new branch then switching to it is:</p>
+
+<pre><code>$ git checkout -b l10n
+
+fatal: A branch named 'l10n' already exists.
+</code></pre>
+
+<p>This command fails since we had already created the branch.</p>
+
+<p>Let's add out localisation - replace the last line of <code>file</code> with <code>Estonia</code>:</p>
+
+<p>Contents of <code>file</code>:</p>
+
+<pre><code>Hello
+Estonia
+</code></pre>
+
+<p>Commit:</p>
+
+<pre><code>$ git add file
+$ git commit -m 'Localised for Estonia'
+</code></pre>
+
+<p>Take a look at the commit history:</p>
+
+<pre><code>$ git log --graph --format=oneline --decorate
+
+ * 2201... (HEAD l10n) Localised for Estonia
+ * 8a7b... (master, greeting) Initial commit
+</code></pre>
+
+<p>We haven't finished testing this feature, when someone tells us that "Hello"
+should be "Hi".  Let's create a separate branch for this bugfix, and start it
+from the <code>master</code> branch:</p>
+
+<pre><code>$ git checkout -b greeting master
+</code></pre>
+
+<p>We could also specify a commit ID in place of <code>master</code>.  If we omitted that
+parameter entirely, the new branch would be based on our HEAD, which was pointed
+at the <code>l10n</code> branch before the previous command, and is now pointed at the
+<code>greeting</code> branch.</p>
+
+<p>Check which branch we're on:</p>
+
+<pre><code>$ git branch
+
+ * greeting
+   l10n
+   master
+</code></pre>
+
+<p>Ensure that we are basing our new branch on <code>master</code>:</p>
+
+<p>Contents of <code>file</code>:</p>
+
+<pre><code>Hello
+World
+</code></pre>
+
+<p>The <code>greeting</code> branch and the <code>master</code> branch point at the same commit
+currently, but when we add a commit to <code>greeting</code>, then that branch will point
+to the new commit.  Because HEAD points at <code>greeting</code>, it will now automatically
+refer to our new commit.</p>
+
+<p>So let's make our commit to <code>greeting</code>: edit <code>file</code> and change "Hello" to "Hi":</p>
+
+<p>Contents of <code>file</code>:</p>
+
+<pre><code>Hi
+World
+</code></pre>
+
+<p>Then commit:</p>
+
+<pre><code>$ git add file
+$ git commit -m 'Greeting fixed'
+</code></pre>
+
+<p>Now that's done, let's merge it back into <code>master</code> by switching to <code>master</code> then
+using <code>git merge &lt;commit&gt;</code></p>
+
+<pre><code>$ git checkout master
+
+$ git branch
+
+   greeting
+   l10n
+ * master
+
+$ git merge greeting
+
+Updating [hash]..[hash]
+Fast-forward
+ file | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+</code></pre>
+
+<p>Because there were no conflicts between <code>master</code> and <code>greeting</code>, Git could
+simply re-play <code>greeting</code>'s changes onto <code>master</code> to create a merge commit.
+However since <code>greeting</code> started from the last commit in <code>master</code>, Git realised
+it could just stick <code>greeting</code>'s commits directly on top of <code>master</code> - the
+resulting history (chain of commits) is identical, so the checksums will remain
+the same.</p>
+
+<p>Great.  Let's get back to working on <code>l10n</code>:</p>
+
+<pre><code>$ git checkout l10n
+</code></pre>
+
+<p>Take a look at the git log:</p>
+
+<pre><code>$ git log --graph --format=oneline --decorate
+
+ * 2201... (HEAD l10n) Localised for Estonia
+ * 8a7b... Initial commit
+</code></pre>
+
+<p>There's no mention of <code>greeting</code> or our merge.  Damn...  Checking
+<code>git log --help</code>, we see that <code>git log</code> shows the history of the current branch
+only.  It shows us a chain, created by following arrows in the commit graph. But
+what if we want to see the whole graph with all branches?  The manpage says
+<code>--all</code> will do that:</p>
+
+<pre><code>$ git log --graph --format=oneline --decorate --all
+
+ * 013dc6dc63189c217c0471e28a13ff60158738a2 (master, greeting) Greeting fixed
+ | * 2201fbefb5e40279c4065ed14fc686f8d4916523 (HEAD, l10n) Localised for Estonia
+ |/
+ * 8a7bf67ff2f679af3cacfd361fa4116150a74290 Initial commit
+</code></pre>
+
+<p>Since <code>master</code> and <code>greeting</code> both have the exact same histories, Git shows them
+in the same label rather than drawing a separate branch for <code>greeting</code>.</p>
+
+<h3>Merge conflicts</h3>
+
+<p>Now let's merge our localisation branch into <code>master</code>.</p>
+
+<pre><code>$ git checkout master
+
+$ git merge l10n
+
+Auto-merging file
+CONFLICT (content): Merge conflict in file
+Automatic merge failed; fix conflicts and then commit the result
+
+$ git status
+
+On branch master
+You have unmerged paths.
+  (fix conflicts and run "git commit")
+
+Unmerged paths:
+  both modified: file
+</code></pre>
+
+<p>Let's open <code>file</code> in our editor:</p>
+
+<p>Contents of <code>file</code>:</p>
+
+<pre><code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+Hi
+World
+=======
+Hello
+Estonia
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; l10n
+</code></pre>
+
+<p>Kind of ugly...  Git takes each conflict and wraps it in arrows to show where
+each conflicting part came from, with a horizontal rule between each part.
+We could resolve this here by deleting the arrow/rule lines and deleting the
+"World"/"Hello" lines.</p>
+
+<p>Instead, use a merge tool.  Running <code>git mergetool</code> will attempt to auto-detect
+which merge tool you have installed, and use it.</p>
+
+<pre><code>$ git mergetool
+</code></pre>
+
+<p>If you are familiar with Vim, then Vimdiff is a great mergetool.  Otherwise,
+consider a simpler tool (or taking a year to learn Vim ;) ).</p>
+
+<p>After sorting out our conflict, commit the changes:</p>
+
+<pre><code>$ git commit
+
+[master d9cfe4e] Merge branch 'l10n'
+</code></pre>
+
+<p>Now check the git log:</p>
+
+<pre><code>$ git log --graph --format=oneline --decorate --all
+
+ *   d9cf4e4246c623cf7469ae6225699a70aeecd063 (HEAD, master) Merge branch 'l10n'
+ |\
+ | * 2201fbefb5e40279c4065ed14fc686f8d4916523 (l10n) Localised for Estonia
+ * | 013dc6dc63189c217c0471e28a13ff60158738a2 (greeting) Greeting fixed
+ |/
+ * 8a7bf67ff2f679af3cacfd361fa4116150a74290 Initial commit
+</code></pre>
+
+<p>Great.  But maybe we want to experiment with some other idea:</p>
+
+<pre><code>$ git checkout 8a7b
+
+Not: checkout out '8a7b'.
+
+...
+</code></pre>
+
+<p>We are no longer on a branch, we are in 'detached HEAD' state, where HEAD points
+directly to a commit.  Let's create a branch for our new idea:</p>
+
+<pre><code>$ git checkout -b eesti-keel
+
+Switched to a new branch 'eesti-keel'
+</code></pre>
+
+<p>Modify <code>file</code>:</p>
+
+<pre><code>Tere
+Eesti
+</code></pre>
+
+<p>Stage and commit:</p>
+
+<pre><code>$ git add file
+
+$ git commit -m 'Use Estonian'
+</code></pre>
+
+<p>Check the history:</p>
+
+<pre><code>$ git log --graph --format=oneline --decorate --all
+
+ * ec5ab6f43f1f8ac9253dcf26616e4565cc55ec3b (HEAD, eesti-keel) Use Estonian
+ | *   d9cf4e4246c623cf7469ae6225699a70aeecd063 (master) Merge branch 'l10n'
+ | |\
+ | | * 2201fbefb5e40279c4065ed14fc686f8d4916523 (l10n) Localised for Estonia
+ | |/
+ |/|
+ | * 013dc6dc63189c217c0471e28a13ff60158738a2 (greeting) Greeting fixed
+ |/
+ * 8a7bf67ff2f679af3cacfd361fa4116150a74290 Initial commit
+</code></pre>
+
+<h3>Rewinding (undoing commits)</h3>
+
+<p>Things are getting complex... if we decided to keep this change, we could
+simply merge it into master:</p>
+
+<pre><code>$ git checkout master
+
+$ git merge eesti-keel
+
+[merge conflict warnings]
+
+$ git mergetool
+
+[resolve conflict in mergetool, take eesti-keel completely]
+
+$ git commit
+
+$ git log --graph --format=oneline --decorate --all
+
+ *   1cdf436      (HEAD, master) Merge branch 'eesti-keel'
+ |\
+ | * ec5ab6f      (eesti-keel) Use Estonian
+ * |   d9cf4e4    Merge branch 'l10n'
+ |\ \
+ | * | 2201fbe    (l10n) Localised for Estonia
+ | |/
+ * | 013dc6d      (greeting) Greeting fixed
+ |/
+ * 8a7bf67        Initial commit
+</code></pre>
+
+<p>The history is rather messy.  Really, we don't care about <code>greeting</code> or <code>l10n</code>
+any more, we just want the changes from <code>eesti-keel</code>.</p>
+
+<p>Let's move <code>master</code> back one commit, to where it was before our merge:</p>
+
+<pre><code>$ git reset HEAD~1
+
+Unstaged changes after reset:
+M file
+</code></pre>
+
+<p>HEAD~1 means one commit behind HEAD.  HEAD~2 would be two commits behind HEAD.</p>
+
+<p>And reset the working tree:</p>
+
+<pre><code>$ git checkout ./
+</code></pre>
+
+<p>Instead of merging <code>eesti-keel</code> on top of our other merges, we really want to
+get rid of them and just use <code>eesti-keel</code> instead.  We could do
+<code>git reset HEAD~2</code> to undo the two merge commits, then merge <code>eesti-keel</code> after.</p>
+
+<pre><code>$ git reset HEAD~2
+
+$ git checkout ./
+
+$ git log --graph --format=oneline --decorate --all
+
+ * ec5ab6f43f1f8ac9253dcf26616e4565cc55ec3b (eesti-keel) Use Estonian
+ | * 013dc6dc63189c217c0471e28a13ff60158738a2 (greeting) Greeting fixed
+ |/
+ | * 2201fbefb5e40279c4065ed14fc686f8d4916523 (l10n) Localised for Estonia
+ |/
+ * 8a7bf67ff2f679af3cacfd361fa4116150a74290 (HEAD, master) Initial commit
+
+$ git merge eesti-keel
+
+$ git log --graph --format=oneline --decorate --all
+
+ * ec5ab6f43f1f8ac9253dcf26616e4565cc55ec3b (HEAD, master, eesti-keel) Use Estonian
+ | * 013dc6dc63189c217c0471e28a13ff60158738a2 (greeting) Greeting fixed
+ |/
+ | * 2201fbefb5e40279c4065ed14fc686f8d4916523 (l10n) Localised for Estonia
+ |/
+ * 8a7bf67ff2f679af3cacfd361fa4116150a74290 Initial commit
+</code></pre>
+
+<p>There - Git can just do a fast-forward now, since <code>eesti-keel</code> started from the
+tip of <code>master</code>.  No conflicts and no merge commit needed.</p>
+
+<h3>Editing history and stamping on butterflies (rebase)</h3>
+
+<p>I strongly recommend reading the manpage for <code>git rebase</code>.  Rebase is a very
+useful and powerful tool which, if used incorrectly, can cause lots of problems
+that are not always easy to fix.  The manpage has lots of nice graph diagrams to
+explain what various rebase operations do.</p>
+
+<pre><code>$ git rebase --help
+</code></pre>
+
+<p>Another method is <code>rebase</code>.  This allows us to insert and remove commits into
+the current branch's history, in addition to squashing several consecutive
+commits into one.  Remember that any changes to history will alter the checksums
+of commits, so you will have issues trying to push your new history to any other
+repositories (e.g. a team's central repository).</p>
+
+<p>First, let's reset <code>master</code> back to the mess we had after three merges, by
+"resetting" master to the commit that we had at the final merge:</p>
+
+<pre><code>$ git reset --hard 1cdf4
+</code></pre>
+
+<p>What's the <code>--hard</code>?  I'm not going to tell you.  It can be extremely
+destructive if not used carefully, so check the manual before you ever consider
+using it yourself.</p>
+
+<p>The most common use for rebase is to pull a chain of commits off its parent, and
+moved it onto a new parent.  See the manpage for more info.  We are going to
+move the <code>eesti-keel</code> commit onto the initial commit.</p>
+
+<pre><code>$ git rebase --onto 013d 1cdf master
+</code></pre>
+
+<p>This modifies the history of branch <code>master</code>, moving 1cdf (our <code>eesti-keel</code>
+merge) onto the place where 013d was.  Note that the ID of the <code>eesti-keel</code>
+merge will have changed after this operation, since it has a new parent chain.</p>
+
+<p>Verify:</p>
+
+<pre><code>$ git log --graph --format=oneline --decorate --all
+
+ * ec5ab6f43f1f8ac9253dcf26616e4565cc55ec3b (eesti-keel) Use Estonian
+ | * 013dc6dc63189c217c0471e28a13ff60158738a2 (HEAD, master, greeting) Greeting fixed
+ |/
+ | * 2201fbefb5e40279c4065ed14fc686f8d4916523 (l10n) Localised for Estonia
+ |/
+ * 8a7bf67ff2f679af3cacfd361fa4116150a74290 Initial commit
+</code></pre>
+
+<p>Great!  But now we have two old branches that aren't wanted any more...</p>
+
+<h3>Deleting branches</h3>
+
+<p>TODO: deleting local branches</p>
+
+<h1>Beware of...</h1>
+
+<p>Reset <code>--hard</code></p>
+
+<p>Rebase</p>
+
+<p>Anything involving "--force" or "-f"</p>
+
+<h1>Useful aliases</h1>
+
+<h1>Status</h1>
+
+<p>Short way to display git status</p>
+
+<pre><code>alias gs='git status'
+
+$ gs
+</code></pre>
+
+<h2>Graph</h2>
+
+<p>Display entire history of all branches as a graph, with shortened commit IDs</p>
+
+<pre><code>alias gg='git log --graph --all --oneline --decorate --full-history --color --pretty=format:"%x1b[31m%h%x09%x1b[32m%d%x1b[0m%x20%s"'
+
+$ gg
+</code></pre>
+
+<h2>Diff</h2>
+
+<pre><code>alias gd='git diff'
+
+$ gd
+
+$ gd &lt;file&gt;
+
+$ gd &lt;commit&gt; -- &lt;file&gt;
+
+$ gd &lt;commit-A&gt; &lt;commit B&gt;
+
+$ gd &lt;commit-A&gt; &lt;commit B&gt; -- &lt;file&gt;
+</code></pre>
+
+<h1>TODO</h1>
+
+<p>Add some graph diagrams</p>
+
+<p>Bare repositories, remotes, fetch/pull, tags+GPG, github, npm, cherry-pick, sobmodules...</p>
+
+<h1>Cheatsheet</h1>
+
+<h2>Handle files beginning with hyphen</h2>
+
+<p>Put double-hyphen before list of filename(s) / path(s):</p>
+
+<pre><code># Create file with annoying name
+$ echo Annoying &gt; --annoying
+
+# Stage file
+$ git add -- --annoying
+
+# Unstage file
+$ git reset -- --annoying
+
+# Delete file (POSIX)
+$ rm -- --annoying
+</code></pre>
+
+<h2>Staging changes:</h2>
+
+<p>New file / modified file:</p>
+
+<pre><code>$ git add &lt;path&gt;
+</code></pre>
+
+<p>Delete file / deleted file:</p>
+
+<pre><code>$ git rm &lt;path&gt;
+</code></pre>
+
+<p>Move file:</p>
+
+<pre><code>$ git mv &lt;source&gt; &lt;dest&gt;
+</code></pre>
+
+<h2>Unstaging / undoing changes:</h2>
+
+<p>Undo a <code>git add</code>:</p>
+
+<pre><code>$ git reset &lt;path&gt;
+</code></pre>
+
+<p>Revert deleted/modified file to version in staging area or in HEAD:</p>
+
+<pre><code>$ git checkout &lt;path&gt;
+</code></pre>
+
+<p>Undo a <code>git rm</code>:</p>
+
+<pre><code>$ git reset &lt;path&gt;
+$ git checkout &lt;path&gt;
+</code></pre>
+
+<p>Unstage changes/deletion to file and revert it to version in HEAD:</p>
+
+<pre><code>$ git reset --hard &lt;path&gt;
+</code></pre>
+
+<p><em>WARNING</em>: The following clears the staging area and reverts the entire working
+tree to the same state as HEAD.  It will <em>DESTROY</em> any un-committed changes:</p>
+
+<pre><code>$ git reset --hard
+</code></pre>
+
+<h2>Viewing changes</h2>
+
+<p>Simple, shows which changes are staged and which are not:</p>
+
+<pre><code>$ git status
+</code></pre>
+
+<p>Detailed, show changes which are not staged (diff working tree vs. index):</p>
+
+<pre><code>$ git diff
+</code></pre>
+
+<p>Working tree or staged changes, vs. some other commit:</p>
+
+<pre><code>$ git diff [--staged] &lt;commit&gt;
+</code></pre>
+
+<p>Changes between two commits (optionally, just changes within one path/file):</p>
+
+<pre><code>$ git diff &lt;commit-A&gt; &lt;commit-B&gt; [&lt;path&gt;]
+</code></pre>
+
+<p>Alternatively (ommitting either commit will implicitly use HEAD):</p>
+
+<pre><code>$ git diff &lt;commit-A&gt;..&lt;commit-B&gt;
+</code></pre>
+
+<h2>Committing changes</h2>
+
+<p>Simply:</p>
+
+<pre><code>$ git commit
+</code></pre>
+
+<p>To specify the commit message:</p>
+
+<pre><code>$ git commit -m 'message'
+</code></pre>
+
+<p>To add currently staged changes to previous commit (HEAD):</p>
+
+<pre><code>$ git commit --amend
+</code></pre>
+
+<p>Note that this will alter the checksum of the commit, so do not do this to any
+commit that has already been merged or pushed.</p>
+
+<h2>Branching</h2>
+
+<p>Switch to branch:</p>
+
+<pre><code>$ git checkout &lt;branch-name&gt;
+</code></pre>
+
+<p>Create branch (does not switch to it):</p>
+
+<pre><code>$ git branch &lt;branch-name&gt;
+</code></pre>
+
+<p>Create branch and switch to it:</p>
+
+<pre><code>$ git checkout -b &lt;branch-name&gt;
+</code></pre>
+
+<p>Create a branch starting at commit or branch <code>start</code> and switch to it:</p>
+
+<pre><code>$ git checkout -b &lt;branch-name&gt; &lt;start&gt;
+</code></pre>
+
+<p>Merge branch <code>feature</code> into branch <code>master</code>:</p>
+
+<pre><code># Switch to master if we aren't already on it
+$ git checkout master
+
+# Merge feature into current branch (master in this case)
+$ git merge feature
+</code></pre>
+
+<p>Delete a branch only if it has been merged:</p>
+
+<pre><code>$ git branch -d &lt;branch-name&gt;
+</code></pre>
+
+<p>Delete a branch even if it has not been merged:</p>
+
+<pre><code>$ git branch -D &lt;branch-name&gt;
+</code></pre>
+
+<h2>View history</h2>
+
+<p>You should probably alias some of these commands into your <code>.bashrc</code> rather than
+typing them out manually every time.  I only use the last one, which I have
+aliased as <code>gg</code> ("git graph").</p>
+
+<p>Detailed log of current branch:</p>
+
+<pre><code>$ git log
+</code></pre>
+
+<p>Less detailed log of current branch:</p>
+
+<pre><code>$ git log --format=oneline
+</code></pre>
+
+<p>Like above, but show commits from all branches (<code>--all</code>):</p>
+
+<pre><code>$ git log --format=oneline --all
+</code></pre>
+
+<p>Like above, but show branch/pointer/tag names (<code>--decorate</code>):</p>
+
+<pre><code>$ git log --format=oneline --all --decorate
+</code></pre>
+
+<p>Like above, but show history graph (<code>--graph</code>):</p>
+
+<pre><code>$ git log --graph --all --oneline --decorate
+</code></pre>
+
+<p>Show full graphical history in colour, including all branches, and with
+abbreviated hashes:</p>
+
+<pre><code>$ git log --graph --all --oneline --decorate --full-history --color --pretty=format:"%x1b[31m%h%x09%x1b[32m%d%x1b[0m%x20%s"
+</code></pre>
+
+<h2>Rewriting history (rebasing / amending)</h2>
+
+<p>Do not do this...  you will probably lose stuff or have trouble checking in.</p>
+
+<p>Read the manpages first:</p>
+
+<pre><code>$ git commit --help
+
+$ git rebase --help
+
+$ git cherry-pick --help
+</code></pre>
+
+<h3>Amending commits</h3>
+
+<p>Add currently staged changes to commit HEAD:</p>
+
+<pre><code>$ git commit --amend
+</code></pre>
+
+<h3>Rebasing a branch</h3>
+
+<p>Assume we branched <code>feature</code> from <code>master</code>, and other people have since merged
+new features/fixes into <code>master</code>:</p>
+
+<pre><code>master:  A---&gt;B---&gt;C---&gt;D
+               \
+feature:        X---&gt;Y
+</code></pre>
+
+<p>We want to ensure that our feature will work with these new changes, so we need
+to incorporate the new commits to <code>master</code> into our <code>feature</code> branch.  We could
+use <code>git merge</code>:</p>
+
+<pre><code>master:  A---&gt;B--------&gt;C---&gt;D
+               \         \    \
+feature:        X---&gt;Y---&gt;C'--&gt;D'
+</code></pre>
+
+<p>This will make the history messy though, and creates a new commit in <code>feature</code>
+for each new commit in <code>master.  When we merge</code>feature<code>back into</code>master`,
+then things will get <strong>really</strong> messy, and we may get a load of merge conflicts
+too.</p>
+
+<pre><code>master:  A---&gt;B--------&gt;C---&gt;D---------E
+               \         \    \       /
+feature:        X---&gt;Y---&gt;C'--&gt;D'---&gt;Z
+</code></pre>
+
+<p>Instead, we can use <code>git rebase</code> to move <code>feature</code>, so that it starts from the
+tip of <code>master</code>:</p>
+
+<pre><code># Assuming we are on "feature" (use "git branch" to check)
+$ git rebase master
+
+# If we aren't not on "feature" - this will checkout feature before rebasing
+$ git rebase master feature
+</code></pre>
+
+<p>This gives us:</p>
+
+<pre><code>master:  A---&gt;B---&gt;C---&gt;D
+                         \
+feature:                  X'--&gt;Y'
+</code></pre>
+
+<p>Note: Because the history behind commits X and Y have changed, their hashes are
+now different.</p>
+
+<p>We may get merge failures when we rebase, if git detects conflicts.  We can
+either resolve them then run <code>git rebase --continue</code>, or ignore a failure by
+calling <code>git rebase --skip</code>.  To abort a failed rebase, call <code>git rebase --abort</code>.</p>
+
+<h3>Moving the children of one commit onto another commit</h3>
+
+<p>Cut the children of branch/commit <code>Y</code> off their parent <code>X</code> and move them into
+the position currently occupied by commit/branch <code>A</code>:</p>
+
+<pre><code>$ git rebase --onto=&lt;commit A&gt; &lt;commit Y&gt; [&lt;branch-name&gt;]
+</code></pre>
+
+<p>Before:</p>
+
+<pre><code>A---&gt;B---&gt;C---&gt;D---&gt;E
+</code></pre>
+
+<p>Command:</p>
+
+<pre><code>$ git rebase --onto=&lt;commit A&gt; &lt;commit C&gt;
+</code></pre>
+
+<p>After:</p>
+
+<pre><code>A---&gt;D---&gt;E
+</code></pre>
+
+<p>Note that this only affects the current branch, see the manpage for <code>git rebase</code>
+for more information, and for how to solve the problems that arise due to child
+branches of the rebased one.</p>
+
+<h2>Configuring remotes</h2>
+
+<p>In order to synchronise your repository with others, it is necessary to configure
+remotes.  If you used <code>git clone</code> to get your repository, then the URL which you
+cloned from will already be configured as a remote with the name you specified
+(or "origin" if no name was specified).</p>
+
+<p>The actual name that you give a remote is only used locally - so call it whatever
+you want.</p>
+
+<h3>Add a remote</h3>
+
+<pre><code>$ git remote add &lt;name&gt; &lt;URL&gt;
+</code></pre>
+
+<h3>Removing a remote</h3>
+
+<pre><code>$ git remote rm &lt;name&gt;
+</code></pre>
+
+<h3>Renaming a remote</h3>
+
+<pre><code>$ git remote rename &lt;old-name&gt; &lt;new-name&gt;
+</code></pre>
+
+<h2>Receiving</h2>
+
+<h3>Fetch</h3>
+
+<p>Typically, you will never need to use:</p>
+
+<pre><code># Defaults to "origin" if no `remote-name` is specified.
+$ git fetch [&lt;remote-name&gt;]
+</code></pre>
+
+<p>This downloads commits from the remote, but does not update your local history
+or HEAD or your working tree.  To merge, use either of:</p>
+
+<pre><code>$ git merge &lt;remote-name&gt;/&lt;branch-name&gt;
+
+$ git merge FETCH_HEAD
+</code></pre>
+
+<p>But don't use the above fetch/merge process at all without good reason, you will
+typically want to use <code>pull</code> instead.</p>
+
+<h3>Pull</h3>
+
+<p>To download commits from a remote and also to update the working tree, history,
+and HEAD; use <code>git pull</code>:</p>
+
+<pre><code>$ git pull [&lt;remote-name&gt;] [&lt;branch-name&gt;]
+</code></pre>
+
+<p>Typically, you want to get the latest version of <code>master</code> branch from remote
+<code>origin</code> so that you can merge your local branches into it:</p>
+
+<pre><code>$ git pull origin master
+</code></pre>
+
+<p>This will cause any new commit to <code>master</code> in the remote to be applied to your
+local <code>master</code>, synchronising their histories.  If you have commits in <code>master</code>
+locally which are not in the remote, then a merge will take place.  If there are
+merge conflicts, then you will be notified and asked to resolve them.</p>
+
+<p>To cancel a failed (conflicting) merge:</p>
+
+<pre><code>$ git reset --merge
+</code></pre>
+
+<p>To keep things simple, you can tell Git to only merge the new commits in if this
+can be done via "fast-forward", i.e. simply adding them onto the tip of the
+local branch:</p>
+
+<pre><code>$ git pull origin master --ff-only
+</code></pre>
+
+<p>This will fail if you have local commits on <code>master</code> which origin does not have
+on its version of <code>master</code>.  You can then review these commits in <code>git log</code> to
+see whether a</p>
+
+<p><code>git pull</code> actually runs <code>git fetch</code> to get the new commits from the remote,
+followed by <code>git merge</code> to merge them into the local branch.</p>
+
+<h3>Pull with rebase</h3>
+
+<p>An alternative to merging if there are new commits in both the remote and the
+local, is to rebase the local commits onto the tip of the remote branch, so that
+the remote's new commits appear behind your new local commits.  To achieve this,
+use the <code>--rebase</code> option:</p>
+
+<pre><code>$ git pull --rebase [&lt;remote-name&gt;] [&lt;branch-name&gt;]
+</code></pre>
+
+<p>If the rebase completes without any conflicts, then you will have a linear
+history for these new local and remote commits rather than <code>master</code> splitting
+into two branches then merging again afterwards.</p>
+
+<h2>Sending</h2>
+
+<p>To update a remote branch with new commits from your local one, use:</p>
+
+<pre><code>$ git push [&lt;remote-name&gt;] [&lt;branch-name&gt;]
+</code></pre>
+
+<p>For example:</p>
+
+<pre><code>$ git push origin master
+</code></pre>
+
+<p>If the remote has new commits which are not in your local branch, the push will
+be rejected.  Never use the <code>-f</code> or <code>--force</code> option as this will delete the new
+commits from the remote.  Instead, either use <code>git pull</code> and resolve the merge
+conflict, or use <code>git pull --rebase</code> to insert the new remote commits before
+your new local commits.</p>
+
+<h2>Rescue lost commits (e.g. lost with rebase / reset / "branch -D")</h2>
+
+<p>Do you have the commit ID available?  If not, use the following to find it:</p>
+
+<pre><code>$ git reflog
+
+$ git fsck --lost-found
+</code></pre>
+
+<p>Now checkout the commit:</p>
+
+<pre><code>$ git checkout &lt;commit&gt;
+</code></pre>
+
+<p>Check your working tree to ensure that this is indeed the commit that you want
+to rescue.</p>
+
+<p>As the commit is at the top of a branch (or indeed on any branch), HEAD no
+longer points to a branch.  Thus you will get a warning about "detached HEAD".</p>
+
+<p>Create a branch from this commit:</p>
+
+<pre><code>$ git branch &lt;branch-name&gt; HEAD
+</code></pre>
+
+<p>Note that you can skip the <code>checkout</code> if you are certain of the commit ID and
+just use this instead:</p>
+
+<pre><code>$ git branch &lt;branch-name&gt; &lt;commit&gt;
+</code></pre>
+
+<p>Your commit is now visible again in the history (check the git log graph to be
+sure).</p>
+
+<p>Commits that are removed from history will be periodically deleted by Git, so
+rescue them sooner than later if you don't want them to be deleted.</p>
+
+<p>One can force the deletion of these "dangling" commits with <code>git gc</code>, however
+there is almost never any reason to manually call this, so I would not advise
+it unless you are on a small embedded system and want to free up space.</p>
+</main>
+<script src="assets/outline.js"></script>
+</body>
+</html>
