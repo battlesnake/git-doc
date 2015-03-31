@@ -66,7 +66,7 @@ DESCRIPTION
 </code></pre>
 
 <p>The key word there is <em>distributed</em>.  It is a very simple content-tracker. Where
-most revision control systems aredesigned to be used in conjunction with some
+most revision control systems are designed to be used in conjunction with some
 central server, and are pretty much useless without it, Git is designed to be
 fully-capable when run locally on one machine - the remote communication
 abilities of git could almost be considered an "afterthought", given that a
@@ -668,11 +668,11 @@ A      B--&gt;C--&gt;D
 <p>A cool thing about DAGs is that they can be "straightened" out such that all
 vertexes are located on a straight line and all edges point in the same
 direction along the line.  This means that any given commit has a linear chain
-of commits preceeding it which fully describe its history.</p>
+of commits preceding it which fully describe its history.</p>
 
 <h3>Branching</h3>
 
-<p>Branching is not a concept unique to Git, however the way that Git implementes
+<p>Branching is not a concept unique to Git, however the way that Git implements
 it makes it extremely useful and powerful.</p>
 
 <p>Create a new Git repository (outside the previous one we were using):</p>
@@ -1244,7 +1244,7 @@ tree to the same state as HEAD.  It will <em>DESTROY</em> any un-committed chang
 <pre><code>$ git diff &lt;commit-A&gt; &lt;commit-B&gt; [&lt;path&gt;]
 </code></pre>
 
-<p>Alternatively (ommitting either commit will implicitly use HEAD):</p>
+<p>Alternatively (committing either commit will implicitly use HEAD):</p>
 
 <pre><code>$ git diff &lt;commit-A&gt;..&lt;commit-B&gt;
 </code></pre>

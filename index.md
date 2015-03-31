@@ -52,7 +52,7 @@ Manpage:
 
 
 The key word there is _distributed_.  It is a very simple content-tracker. Where
-most revision control systems aredesigned to be used in conjunction with some
+most revision control systems are designed to be used in conjunction with some
 central server, and are pretty much useless without it, Git is designed to be
 fully-capable when run locally on one machine - the remote communication
 abilities of git could almost be considered an "afterthought", given that a
@@ -614,11 +614,11 @@ Your git history is a directed acyclic graph.
 A cool thing about DAGs is that they can be "straightened" out such that all
 vertexes are located on a straight line and all edges point in the same
 direction along the line.  This means that any given commit has a linear chain
-of commits preceeding it which fully describe its history.
+of commits preceding it which fully describe its history.
 
 ### Branching
 
-Branching is not a concept unique to Git, however the way that Git implementes
+Branching is not a concept unique to Git, however the way that Git implements
 it makes it extremely useful and powerful.
 
 Create a new Git repository (outside the previous one we were using):
@@ -1136,7 +1136,7 @@ Changes between two commits (optionally, just changes within one path/file):
 
 	$ git diff <commit-A> <commit-B> [<path>]
 
-Alternatively (ommitting either commit will implicitly use HEAD):
+Alternatively (committing either commit will implicitly use HEAD):
 
 	$ git diff <commit-A>..<commit-B>
 
