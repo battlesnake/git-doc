@@ -1110,7 +1110,10 @@ move the <code>eesti-keel</code> commit onto the initial commit.</p>
 
 <p>This modifies the history of branch <code>master</code>, moving 1cdf (our <code>eesti-keel</code>
 merge) onto the place where 013d was.  Note that the ID of the <code>eesti-keel</code>
-merge will have changed after this operation, since it has a new parent chain.</p>
+merge will have changed after this operation, since it has a new parent chain.
+<em>For this reason, never rebase a branch which exists in remotes, as others may
+get drowned in merge conflicts when they try to merge their work into the
+branch</em></p>
 
 <p>Verify:</p>
 
@@ -1404,18 +1407,18 @@ to incorporate the new commits to <code>master</code> into our <code>feature</co
 use <code>git merge</code>:</p>
 
 <pre><code>master:  A---&gt;B--------&gt;C---&gt;D
-               \         \    \
+               \              \
 feature:        X---&gt;Y---&gt;C'--&gt;D'
 </code></pre>
 
 <p>This will make the history messy though, and creates a new commit in <code>feature</code>
-for each new commit in <code>master</code>.  When we merge <code>feature</code> back into <code>master</code>,
+each time we merge from <code>master</code>.  When we merge <code>feature</code> back into <code>master</code>,
 then things will get <strong>really</strong> messy, and we may get a load of merge conflicts
 too.</p>
 
-<pre><code>master:  A---&gt;B--------&gt;C---&gt;D---------E
-               \         \    \       /
-feature:        X---&gt;Y---&gt;C'--&gt;D'---&gt;Z
+<pre><code>master:  A---&gt;B-----&gt;C---&gt;D----&gt;E---&gt;F---&gt;G
+               \           \     \       /
+feature:        X---&gt;Y----&gt;C+D'--&gt;E'---&gt;Z
 </code></pre>
 
 <p>Instead, we can use <code>git rebase</code> to move <code>feature</code>, so that it starts from the
@@ -1436,11 +1439,14 @@ feature:                  X'--&gt;Y'
 </code></pre>
 
 <p>Note: Because the history behind commits X and Y have changed, their hashes are
-now different.</p>
+now different.  <em>For this reason, only ever rebase local branches.  NEVER rebase
+a branch which exists in a remote, as others will get serious headaches when
+they try to receive your changes or add their own.</em></p>
 
 <p>We may get merge failures when we rebase, if git detects conflicts.  We can
 either resolve them then run <code>git rebase --continue</code>, or ignore a failure by
-calling <code>git rebase --skip</code>.  To abort a failed rebase, call <code>git rebase --abort</code>.</p>
+calling <code>git rebase --skip</code> to skip merging the conflicting commit.  To abort a
+failed rebase instead, call <code>git rebase --abort</code>.</p>
 
 <h3>Moving the children of one commit onto another commit</h3>
 

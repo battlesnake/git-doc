@@ -1019,6 +1019,9 @@ move the `eesti-keel` commit onto the initial commit.
 This modifies the history of branch `master`, moving 1cdf (our `eesti-keel`
 merge) onto the place where 013d was.  Note that the ID of the `eesti-keel`
 merge will have changed after this operation, since it has a new parent chain.
+*For this reason, never rebase a branch which exists in remotes, as others may
+get drowned in merge conflicts when they try to merge their work into the
+branch*
 
 Verify:
 
@@ -1275,17 +1278,17 @@ to incorporate the new commits to `master` into our `feature` branch.  We could
 use `git merge`:
 
 	master:  A--->B-------->C--->D
-	               \         \    \
+	               \              \
 	feature:        X--->Y--->C'-->D'
 
 This will make the history messy though, and creates a new commit in `feature`
-for each new commit in `master`.  When we merge `feature` back into `master`,
+each time we merge from `master`.  When we merge `feature` back into `master`,
 then things will get **really** messy, and we may get a load of merge conflicts
 too.
 
-	master:  A--->B-------->C--->D---------E
-	               \         \    \       /
-	feature:        X--->Y--->C'-->D'--->Z
+	master:  A--->B----->C--->D---->E--->F--->G
+	               \           \     \       /
+	feature:        X--->Y---->C+D'-->E'--->Z
 
 Instead, we can use `git rebase` to move `feature`, so that it starts from the
 tip of `master`:
@@ -1303,11 +1306,14 @@ This gives us:
 	feature:                  X'-->Y'
 
 Note: Because the history behind commits X and Y have changed, their hashes are
-now different.
+now different.  *For this reason, only ever rebase local branches.  NEVER rebase
+a branch which exists in a remote, as others will get serious headaches when
+they try to receive your changes or add their own.*
 
 We may get merge failures when we rebase, if git detects conflicts.  We can
 either resolve them then run `git rebase --continue`, or ignore a failure by
-calling `git rebase --skip`.  To abort a failed rebase, call `git rebase --abort`.
+calling `git rebase --skip` to skip merging the conflicting commit.  To abort a
+failed rebase instead, call `git rebase --abort`.
 
 ### Moving the children of one commit onto another commit
 
