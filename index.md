@@ -1138,7 +1138,7 @@ Anything involving "--force" or "-f"
 
 # Useful aliases
 
-# Status
+## Status
 
 Short way to display git status
 
