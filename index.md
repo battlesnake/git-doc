@@ -427,6 +427,15 @@ been staged or committed will be checked for changes, and the changes will be
 staged.  Deletion counts as a "change".  Untracked files will not be staged by
 this.
 
+One can also use the following shortcut for `git add -u`, `git commit`:
+
+	$ git commit -a
+
+	# Specify message on command line
+	$ git commit -am 'Lots of stuff changes'
+
+To stage all changes, including new files:
+
 	$ git add -A
 
 Like `git add -u`, but also stages untracked files.  This is a **really** useful
@@ -515,8 +524,29 @@ we had staged previously.
 
 ### History
 
-See next section
+To undo a particular commit without modifying the existing history, we can
+create an undo commit with `git revert`.  This commit essentially cancels out
+the changes introduced by a previous commit, without removing the previous
+commit.  Hence, the undo itself can be undone at a later stage since the
+original commit still exists in the history.
 
+To create an undo commit which reverses some previous commit(s) with id(s)
+`commit-id`, use:
+
+	$ git revert <commit-id> <another commit-id>...
+
+For example, to undo the most recent commit:
+
+	$ git revert HEAD
+
+Or to undo the two commits prior to the most recent one:
+
+	$ git revert HEAD~1 HEAD~2
+
+This creates an extra commit on the current branch, which negates the effects of
+the referenced commit(s) `commit-id`.  But what actually is the `commit-id`?
+What does that `HEAD` and `HEAD~1` stuff mean?  How do we refer to commits? This
+is covered in the next section.
 
 ## Time-travel: using the history
 
@@ -560,7 +590,7 @@ own local copies.
 
 Git uses the SHA1 hashing algorithm.
 
-### HEAD
+### Refs: HEAD, ~ ^
 
 Finally.  HEAD.  What is it?
 
@@ -573,6 +603,64 @@ HEAD directly points to, it ultimately identifies a commit.
 
 When we create a new commit, that commit becomes HEAD.  If we create another
 commit after this, the new commit becomes HEAD and so forth.
+
+The commit before HEAD is identified as `HEAD~1`, and before that is `HEAD~2`,
+and so on.  If a commit has multiple possible parents (e.g. the commit is a
+merge of two branches), then the parent to follow can be specified using the `^`
+operator.  Note that on Windows, the operator will need to be escaped.
+
+ * ~N: Nth-generation parent (0=self, 1=parent, 2=grandparent, etc)
+
+ * ^N: Nth direct parent (0=self, 1=first direct parent, 2=second direct parent)
+
+If N is omitted, it defaults to `.  With this system, there are many ways to
+refer to any particular commit, some more readable than others.  To see which
+commit a particular reference refers to, use:
+
+	$ git rev-parse <ref>
+
+Or for more detail:
+
+	$ git show <ref>
+
+Current commit: HEAD, HEAD~0, HEAD^0
+
+	A-->B-->C-->D*
+	 \     /
+	  X-->Y
+
+Parent of current commit: HEAD~ / HEAD^ / HEAD~1 / HEAD^1
+
+	A-->B-->C*->D
+	 \     /
+	  X-->Y
+
+Grandparent of current commit: HEAD~~ / HEAD^^ / HEAD~2 / HEAD~1^1 / etc
+
+	A-->B*->C-->D
+	 \     /
+	  X-->Y
+
+Great grandparent of current commit: HEAD~~~ / HEAD^^^ / HEAD~3 / HEAD~2~ / HEAD ~~2 / etc
+
+	A-->B*->C-->D
+	 \     /
+	  X-->Y
+
+Second grandparent of current commit: HEAD~^2 / HEAD~1^2 / HEAD^1^2 / etc
+
+	A-->B-->C-->D
+	 \     /
+	  X-->Y*
+
+Parent of second grandparent of current commit: HEAD~^2~ / HEAD~1^2~1 / HEAD^1^2^1 / HEAD ^^2^ / etc
+
+	A-->B-->C-->D
+	 \     /
+	  X*->Y
+
+If the ID of commit C is `12345...`, then we can refer to its second parent like
+so: `12345^2`.
 
 # Less basic Git usage
 
@@ -1245,6 +1333,28 @@ Show full graphical history in colour, including all branches, and with
 abbreviated hashes:
 
 	$ git log --graph --all --oneline --decorate --full-history --color --pretty=format:"%x1b[31m%h%x09%x1b[32m%d%x1b[0m%x20%s"
+
+### Resolve reference
+
+Show the hash of a particular commit:
+
+	$ git rev-parse master
+
+	$ git rev-parse test~3
+
+	# Shows the hash of the closest common ancestor of `test` and `master`:
+	$ git rev-parse test...master
+
+### View particular commit
+
+Show details of a particular commit, including full ID, who authored it, what
+changes are included in it, ...:
+
+	# Show details of top commit in `feature` branch
+	$ git show feature
+
+	# Show details of commit with ID that starts 98765...
+	$ git show 98765
 
 ## Rewriting history (rebasing / amending)
 
