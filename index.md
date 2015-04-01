@@ -615,7 +615,7 @@ operator.  Note that on Windows, the operator will need to be escaped.
 
  * ^N: Nth direct parent (0=self, 1=first direct parent, 2=second direct parent)
 
-If N is omitted, it defaults to `.  With this system, there are many ways to
+If N is omitted, it defaults to 1.  With this system, there are many ways to
 refer to any particular commit, some more readable than others.  To see which
 commit a particular reference refers to, use:
 
