@@ -1689,6 +1689,11 @@ cloned from will already be configured as a remote with the name you specified
 <p>The actual name that you give a remote is only used locally - so call it whatever
 you want.</p>
 
+<p>A remote can be a repository accessible via HTTPS
+(e.g. https://[username@]github.com/username/repository), via SSH
+(username@server/path/repository) or a local path to a bare repository
+(e.g. /mnt/team-nfs-mount/git-repos/repo).</p>
+
 <h3>Add a remote</h3>
 
 <pre><code>$ git remote add &lt;name&gt; &lt;URL&gt;
@@ -1702,6 +1707,20 @@ you want.</p>
 <h3>Renaming a remote</h3>
 
 <pre><code>$ git remote rename &lt;old-name&gt; &lt;new-name&gt;
+</code></pre>
+
+<h3>Cloning a remote</h3>
+
+<pre><code>$ git clone &lt;url&gt;
+</code></pre>
+
+<p>This effectively runs:</p>
+
+<pre><code>$ mkdir &lt;repo-name&gt;
+$ cd &lt;repo-name&gt;
+$ git init
+$ git remote add origin &lt;url&gt;
+$ git pull -u origin master
 </code></pre>
 
 <h2>Receiving</h2>
