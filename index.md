@@ -1515,8 +1515,9 @@ that `feature` incorporates the changes introduced by the new commits in
 	                                    \
 	feature:                             X--->Y
 
-Note that if we had simply branched `bugfix` from `feature` instead of from
-`master`, we could solve this by just rebasing `bugfix` to `master`.
+Note that if instead of forgetting to branch, we had simply branched `bugfix`
+from `feature` instead of from `master`, we could solve this by just rebasing
+`bugfix` to `master`.
 
 ## Configuring remotes
 
