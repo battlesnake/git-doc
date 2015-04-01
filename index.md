@@ -548,6 +548,8 @@ the referenced commit(s) `commit-id`.  But what actually is the `commit-id`?
 What does that `HEAD` and `HEAD~1` stuff mean?  How do we refer to commits? This
 is covered in the next section.
 
+# Less basic Git usage
+
 ## Time-travel: using the history
 
 Now it's time for me to go hardcore on yo asses.  In this section, we'll finally
@@ -571,7 +573,7 @@ concepts for anyone who wants to get the most out of Git.  I assume that you
 know what a checksum (or "hash") is - if not, consult
 [Wikipedia](http://en.wikipedia.org/wiki/Checksum).
 
-### That weird hexadecimal crap
+### Checksum: that weird hexadecimal crap
 
 Commits are identified by their checksum.  This means that the "ID" of a commit
 is dependent on the contents of the commit.  Hence, if the contents of the commit
@@ -661,8 +663,6 @@ Parent of second grandparent of current commit: HEAD~^2~ / HEAD~1^2~1 / HEAD^1^2
 
 If the ID of commit C is `12345...`, then we can refer to its second parent like
 so: `12345^2`.
-
-# Less basic Git usage
 
 ## Branching
 
