@@ -1518,7 +1518,7 @@ $ git cherry-pick --help
 <pre><code>$ git commit --amend
 </code></pre>
 
-<h3>Rebasing a branch</h3>
+<h3>Rebasing a branch (changing where it branches from)</h3>
 
 <p>Assume we branched <code>feature</code> from <code>master</code>, and other people have since merged
 new features/fixes into <code>master</code>:</p>
@@ -1532,9 +1532,9 @@ feature:        X---&gt;Y
 to incorporate the new commits to <code>master</code> into our <code>feature</code> branch.  We could
 use <code>git merge</code>:</p>
 
-<pre><code>master:  A---&gt;B--------&gt;C---&gt;D
-               \              \
-feature:        X---&gt;Y---&gt;C'--&gt;D'
+<pre><code>master:  A---&gt;B----&gt;C---&gt;D
+               \          \
+feature:        X---&gt;Y---&gt;C+D'
 </code></pre>
 
 <p>This will make the history messy though, and creates a new commit in <code>feature</code>
@@ -1542,10 +1542,12 @@ each time we merge from <code>master</code>.  When we merge <code>feature</code>
 then things will get <strong>really</strong> messy, and we may get a load of merge conflicts
 too.</p>
 
-<pre><code>master:  A---&gt;B-----&gt;C---&gt;D----&gt;E---&gt;F---&gt;G
+<pre><code>master:  A---&gt;B-----&gt;C---&gt;D----&gt;E---&gt;F---&gt;G---&gt;...
                \           \     \       /
 feature:        X---&gt;Y----&gt;C+D'--&gt;E'---&gt;Z
 </code></pre>
+
+<p>When several people all take this approach, then the history gets <em>really</em> ugly.</p>
 
 <p>Instead, we can use <code>git rebase</code> to move <code>feature</code>, so that it starts from the
 tip of <code>master</code>:</p>
@@ -1557,7 +1559,7 @@ $ git rebase master
 $ git rebase master feature
 </code></pre>
 
-<p>This gives us:</p>
+<p>This gives us our result with no extra commits:</p>
 
 <pre><code>master:  A---&gt;B---&gt;C---&gt;D
                          \
@@ -1574,7 +1576,7 @@ either resolve them then run <code>git rebase --continue</code>, or ignore a fai
 calling <code>git rebase --skip</code> to skip merging the conflicting commit.  To abort a
 failed rebase instead, call <code>git rebase --abort</code>.</p>
 
-<h3>Moving the children of one commit onto another commit</h3>
+<h3>Moving the children of one commit onto another commit within a branch</h3>
 
 <p>Cut the children of branch/commit <code>Y</code> off their parent <code>X</code> and move them onto
 commit/branch <code>A</code>:</p>
@@ -1597,9 +1599,85 @@ commit/branch <code>A</code>:</p>
 <pre><code>A---&gt;D---&gt;E
 </code></pre>
 
-<p>Note that this only affects the current branch, see the manpage for <code>git rebase</code>
-for more information, and for how to solve the problems that arise due to child
-branches of the rebased one.</p>
+<p>See the "Rescue lost commits" section for how to recover the removed commits B
+and C.</p>
+
+<h2>Cherry-picking - copying select commits from one branch to another</h2>
+
+<p>To copy commits from one branch to the current branch, simply use:</p>
+
+<pre><code>$ git cherry-pick &lt;commit&gt; &lt;commit&gt;...
+</code></pre>
+
+<p>If we've been committing to the wrong branch (as often occurs when doing
+quick bug-fixes and forget to branch):</p>
+
+<p>Before:</p>
+
+<pre><code>master:   A---&gt;B---&gt;C---&gt;D
+               |          \
+(bugfix)       |          (P+Q should be here)
+                \
+feature:         X---&gt;Y---&gt;P---&gt;Q
+</code></pre>
+
+<p>First we create our bugfix branch:</p>
+
+<pre><code># Branch from commit "D"
+$ git checkout -b bugfix &lt;commit D&gt;
+
+# Branch from commit at tip of master
+$ git checkout -b bugfix master
+</code></pre>
+
+<p>Then we apply commits P and Q to the bugfix branch:</p>
+
+<pre><code>$ git cherry-pick &lt;commit-P&gt; &lt;commit-Q&gt;
+</code></pre>
+
+<p>Then we remove them from the feature branch:</p>
+
+<pre><code># Switch to feature branch
+$ git checkout feature
+
+# Delete commits "P" and "Q" from feature branch by resetting to commit Y
+$ git reset --hard &lt;commit-Y&gt;
+
+# Or alternatively, to delete the last 2 commits from a branch:
+$ git reset --hard HEAD~2
+</code></pre>
+
+<p>And switch to the bugfix branch again:</p>
+
+<pre><code>$ git checkout bugfix
+</code></pre>
+
+<p>After:</p>
+
+<pre><code>master:   A---&gt;B---&gt;C---&gt;D
+               |          \
+bugfix:        |           P---&gt;Q
+                \
+feature:         X---&gt;Y
+</code></pre>
+
+<p>Note that this only moves commits of the specified (or by default, the current)
+branch, see the manpage for <code>git rebase</code> for more information, and for how to
+solve the problems that arise due to child branches of the rebased one not being
+rebased themselves.</p>
+
+<p>Once <code>bugfix</code> has been merged into <code>master</code>, we could rebase <code>feature</code> onto the
+tip of <code>master</code> as described in the previous section "Rebasing a branch", so
+that <code>feature</code> incorporates the changes introduced by the new commits in
+<code>master</code> and the merging of <code>bugfix</code>:</p>
+
+<pre><code>master:   A---&gt;B---&gt;C---&gt;D---&gt;P---&gt;Q
+                                    \
+feature:                             X---&gt;Y
+</code></pre>
+
+<p>Note that if we had simply branched <code>bugfix</code> from <code>feature</code> instead of from
+<code>master</code>, we could solve this by just rebasing <code>bugfix</code> to <code>master</code>.</p>
 
 <h2>Configuring remotes</h2>
 

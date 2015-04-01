@@ -1374,7 +1374,7 @@ Add currently staged changes to commit HEAD:
 
 	$ git commit --amend
 
-### Rebasing a branch
+### Rebasing a branch (changing where it branches from)
 
 Assume we branched `feature` from `master`, and other people have since merged
 new features/fixes into `master`:
@@ -1387,18 +1387,20 @@ We want to ensure that our feature will work with these new changes, so we need
 to incorporate the new commits to `master` into our `feature` branch.  We could
 use `git merge`:
 
-	master:  A--->B-------->C--->D
-	               \              \
-	feature:        X--->Y--->C'-->D'
+	master:  A--->B---->C--->D
+	               \          \
+	feature:        X--->Y--->C+D'
 
 This will make the history messy though, and creates a new commit in `feature`
 each time we merge from `master`.  When we merge `feature` back into `master`,
 then things will get **really** messy, and we may get a load of merge conflicts
 too.
 
-	master:  A--->B----->C--->D---->E--->F--->G
+	master:  A--->B----->C--->D---->E--->F--->G--->...
 	               \           \     \       /
 	feature:        X--->Y---->C+D'-->E'--->Z
+
+When several people all take this approach, then the history gets *really* ugly.
 
 Instead, we can use `git rebase` to move `feature`, so that it starts from the
 tip of `master`:
@@ -1409,7 +1411,7 @@ tip of `master`:
 	# If we aren't not on "feature" - this will checkout feature before rebasing
 	$ git rebase master feature
 
-This gives us:
+This gives us our result with no extra commits:
 
 	master:  A--->B--->C--->D
 	                         \
@@ -1425,7 +1427,7 @@ either resolve them then run `git rebase --continue`, or ignore a failure by
 calling `git rebase --skip` to skip merging the conflicting commit.  To abort a
 failed rebase instead, call `git rebase --abort`.
 
-### Moving the children of one commit onto another commit
+### Moving the children of one commit onto another commit within a branch
 
 Cut the children of branch/commit `Y` off their parent `X` and move them onto
 commit/branch `A`:
@@ -1444,9 +1446,77 @@ After:
 
 	A--->D--->E
 
-Note that this only affects the current branch, see the manpage for `git rebase`
-for more information, and for how to solve the problems that arise due to child
-branches of the rebased one.
+See the "Rescue lost commits" section for how to recover the removed commits B
+and C.
+
+## Cherry-picking - copying select commits from one branch to another
+
+To copy commits from one branch to the current branch, simply use:
+
+	$ git cherry-pick <commit> <commit>...
+
+If we've been committing to the wrong branch (as often occurs when doing
+quick bug-fixes and forget to branch):
+
+Before:
+
+	master:   A--->B--->C--->D
+	               |          \
+	(bugfix)       |          (P+Q should be here)
+	                \
+	feature:         X--->Y--->P--->Q
+
+First we create our bugfix branch:
+
+	# Branch from commit "D"
+	$ git checkout -b bugfix <commit D>
+
+	# Branch from commit at tip of master
+	$ git checkout -b bugfix master
+
+Then we apply commits P and Q to the bugfix branch:
+
+	$ git cherry-pick <commit-P> <commit-Q>
+
+Then we remove them from the feature branch:
+
+	# Switch to feature branch
+	$ git checkout feature
+
+	# Delete commits "P" and "Q" from feature branch by resetting to commit Y
+	$ git reset --hard <commit-Y>
+
+	# Or alternatively, to delete the last 2 commits from a branch:
+	$ git reset --hard HEAD~2
+
+And switch to the bugfix branch again:
+
+	$ git checkout bugfix
+
+After:
+
+	master:   A--->B--->C--->D
+	               |          \
+	bugfix:        |           P--->Q
+	                \
+	feature:         X--->Y
+
+Note that this only moves commits of the specified (or by default, the current)
+branch, see the manpage for `git rebase` for more information, and for how to
+solve the problems that arise due to child branches of the rebased one not being
+rebased themselves.
+
+Once `bugfix` has been merged into `master`, we could rebase `feature` onto the
+tip of `master` as described in the previous section "Rebasing a branch", so
+that `feature` incorporates the changes introduced by the new commits in
+`master` and the merging of `bugfix`:
+
+	master:   A--->B--->C--->D--->P--->Q
+	                                    \
+	feature:                             X--->Y
+
+Note that if we had simply branched `bugfix` from `feature` instead of from
+`master`, we could solve this by just rebasing `bugfix` to `master`.
 
 ## Configuring remotes
 
