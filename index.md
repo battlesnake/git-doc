@@ -1455,6 +1455,8 @@ To copy commits from one branch to the current branch, simply use:
 
 	$ git cherry-pick <commit> <commit>...
 
+### Moving commits we put onto the wrong branch
+
 If we've been committing to the wrong branch (as often occurs when doing
 quick bug-fixes and forget to branch):
 
@@ -1514,6 +1516,8 @@ that `feature` incorporates the changes introduced by the new commits in
 	master:   A--->B--->C--->D--->P--->Q
 	                                    \
 	feature:                             X--->Y
+
+### Moving an entire branch - use rebase instead
 
 Note that if instead of forgetting to branch, we had simply branched `bugfix`
 from `feature` instead of from `master`, we could solve this by just rebasing

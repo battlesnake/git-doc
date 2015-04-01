@@ -1609,6 +1609,8 @@ and C.</p>
 <pre><code>$ git cherry-pick &lt;commit&gt; &lt;commit&gt;...
 </code></pre>
 
+<h3>Moving commits we put onto the wrong branch</h3>
+
 <p>If we've been committing to the wrong branch (as often occurs when doing
 quick bug-fixes and forget to branch):</p>
 
@@ -1675,6 +1677,8 @@ that <code>feature</code> incorporates the changes introduced by the new commits
                                     \
 feature:                             X---&gt;Y
 </code></pre>
+
+<h3>Moving an entire branch - use rebase instead</h3>
 
 <p>Note that if instead of forgetting to branch, we had simply branched <code>bugfix</code>
 from <code>feature</code> instead of from <code>master</code>, we could solve this by just rebasing
