@@ -1545,7 +1545,9 @@ A remote can be a repository accessible via HTTPS
 
 	$ git remote rename <old-name> <new-name>
 
-### Cloning a remote
+## Receiving
+
+### Cloning
 
 	$ git clone <url>
 
@@ -1556,8 +1558,6 @@ This effectively runs:
 	$ git init
 	$ git remote add origin <url>
 	$ git pull -u origin master
-
-## Receiving
 
 ### Fetch
 
